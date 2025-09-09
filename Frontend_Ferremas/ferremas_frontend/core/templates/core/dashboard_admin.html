@@ -1,0 +1,15 @@
+{% extends 'base.html' %}
+{% block title %}Panel Administrador{% endblock %}
+{% block nav %}
+<ul>
+    <li><a href="{% url 'core:dashboard' %}">Inicio</a></li>
+    <li><a href="{% url 'core:usuarios_list' %}">Usuarios</a></li>
+    <li><a href="{% url 'core:register' %}">Registrar Usuario</a></li>
+    <li><a href="{% url 'core:productos_list' %}">Productos</a></li>
+    <li><a href="{% url 'core:informe_ventas_mensual' %}">Informe Ventas Mensual</a></li>
+</ul>
+{% endblock %}
+{% block content %}
+<h2>Panel de Administración</h2>
+<p>Bienvenido, {{ user.nombre }}.</p>
+{% endblock %}

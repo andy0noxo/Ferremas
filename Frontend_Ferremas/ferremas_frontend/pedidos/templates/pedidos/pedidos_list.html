@@ -1,0 +1,43 @@
+{% extends 'base.html' %}
+{% block title %}Mis Pedidos{% endblock %}
+{% block nav %}
+<ul>
+    <li><a href="{% url 'core:dashboard' %}">Inicio</a></li>
+    <li><a href="{% url 'core:productos_list' %}">Catálogo de productos</a></li>
+</ul>
+{% endblock %}
+{% block content %}
+{% if user.rol == 'Administrador' %}
+    <h2>No disponible para administradores.</h2>
+{% else %}
+<h2>Mis Pedidos</h2>
+{% if pedidos %}
+<table border="1">
+    <thead>
+        <tr>
+            <th>ID</th>
+            <th>Fecha</th>
+            <th>Estado</th>
+            <th>Total (CLP)</th>
+            <th>Total (USD)</th>
+            <th>Acciones</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for pedido in pedidos %}
+        <tr>
+            <td>{{ pedido.id }}</td>
+            <td>{{ pedido.fecha_pedido|default:"-" }}</td>
+            <td>{{ pedido.estado|default:"-" }}</td>
+            <td>${{ pedido.total|default:"-" }}</td>
+            <td>{% if pedido.total_usd %}${{ pedido.total_usd|floatformat:2 }}{% else %}-{% endif %}</td>
+            <td><a href="{% url 'pedidos:pedido_detalle' pedido.id %}">Ver detalle</a></td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% else %}
+<p>No tienes pedidos registrados.</p>
+{% endif %}
+{% endif %}
+{% endblock %}

@@ -1,0 +1,47 @@
+{% extends 'base.html' %}
+{% block title %}Stock General{% endblock %}
+{% block nav %}
+<ul>
+    <li><a href="{% url 'core:dashboard' %}">Inicio</a></li>
+    <li><a href="{% url 'core:stock_list' %}">Stock</a></li>
+</ul>
+{% endblock %}
+{% block content %}
+<h2>Stock General</h2>
+<form method="get" style="margin-bottom:1em;">
+    <input type="text" name="producto" placeholder="Buscar producto" value="{{ producto_nombre }}">
+    <input type="text" name="sucursal" placeholder="Buscar sucursal" value="{{ sucursal_nombre }}">
+    <button type="submit">Buscar</button>
+    {% if producto_nombre or sucursal_nombre %}
+        <a href="{% url 'core:stock_list' %}">Limpiar</a>
+    {% endif %}
+</form>
+<table border="1">
+    <thead>
+        <tr>
+            <th>Producto</th>
+            <th>Precio (CLP)</th>
+            <th>Precio (USD)</th>
+            <th>Sucursal</th>
+            <th>Cantidad</th>
+            <th>Acciones</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for s in stock %}
+        <tr>
+            <td>{{ s.producto.nombre }}</td>
+            <td>{% if s.producto.precio_clp %}${{ s.producto.precio_clp|floatformat:0 }}{% elif s.producto.precio %}${{ s.producto.precio|floatformat:0 }}{% else %}-{% endif %}</td>
+            <td>{% if s.producto.precio_usd %}${{ s.producto.precio_usd|floatformat:2 }}{% else %}-{% endif %}</td>
+            <td>{{ s.sucursal.nombre }}</td>
+            <td>{{ s.cantidad }}</td>
+            <td>
+                <a href="{% url 'core:stock_actualizar' s.producto.id s.sucursal.id %}">Actualizar</a>
+            </td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="6">No hay registros de stock.</td></tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock %}

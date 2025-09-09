@@ -1,0 +1,61 @@
+{% extends 'base.html' %}
+{% block title %}Informe de Ventas Mensual por Sucursal{% endblock %}
+{% block nav %}
+<ul>
+    <li><a href="{% url 'core:dashboard' %}">Inicio</a></li>
+    <li><a href="{% url 'core:usuarios_list' %}">Usuarios</a></li>
+    <li><a href="{% url 'core:productos_list' %}">Productos</a></li>
+    <li><a href="{% url 'core:informe_ventas_mensual' %}">Informe Ventas Mensual</a></li>
+</ul>
+{% endblock %}
+{% block content %}
+<h2>Informe de Ventas Mensual por Sucursal</h2>
+<form method="get">
+    <label for="sucursal">Sucursal:</label>
+    <select name="sucursal" id="sucursal" required>
+        <option value="">Seleccione</option>
+        {% for suc in sucursales %}
+            <option value="{{ suc.id }}" {% if selected_sucursal == suc.id|stringformat:'s' %}selected{% endif %}>{{ suc.nombre }}</option>
+        {% endfor %}
+    </select>
+    <label for="anio">Año:</label>
+    <input type="number" name="anio" id="anio" value="{{ selected_anio }}" min="2020" max="2100" required>
+    <label for="mes">Mes:</label>
+    <select name="mes" id="mes" required>
+        {% for m in meses %}
+            <option value="{{ m }}" {% if selected_mes == m|stringformat:'s' %}selected{% endif %}>{{ m }}</option>
+        {% endfor %}
+    </select>
+    <button type="submit">Ver informe</button>
+</form>
+{% if informe %}
+    <h3>Resumen</h3>
+    <p><strong>Sucursal:</strong> {{ informe.sucursal.nombre }}</p>
+    <p><strong>Mes/Año:</strong> {{ informe.mes }}/{{ informe.anio }}</p>
+    <p><strong>Total ventas:</strong> ${{ informe.totalVentas }}</p>
+    <p><strong>Cantidad de pedidos:</strong> {{ informe.cantidadPedidos }}</p>
+    <h4>Pedidos</h4>
+    <table border="1">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Fecha</th>
+                <th>Usuario</th>
+                <th>Total</th>
+                <th>Estado</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for pedido in informe.pedidos %}
+            <tr>
+                <td>{{ pedido.id }}</td>
+                <td>{{ pedido.fecha_pedido|date:'Y-m-d' }}</td>
+                <td>{{ pedido.usuario.nombre }}</td>
+                <td>${{ pedido.total }}</td>
+                <td>{{ pedido.estado }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+{% endif %}
+{% endblock %}

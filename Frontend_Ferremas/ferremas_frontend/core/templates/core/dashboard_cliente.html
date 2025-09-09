@@ -1,0 +1,12 @@
+{% extends 'base.html' %}
+{% block title %}Panel Cliente{% endblock %}
+{% block nav %}
+<ul>    <li><a href="{% url 'pedidos:pedidos_list' %}">Mis Pedidos</a></li>
+    <li><a href="{% url 'core:productos_list' %}">Catálogo de Productos</a></li>
+</ul>
+{% endblock %}
+{% block content %}
+<h2>Panel de Cliente</h2>
+<p>Bienvenido, {{ user.nombre }}.</p>
+<p>Aquí puedes ver tus pedidos, tu carrito y explorar productos.</p>
+{% endblock %}

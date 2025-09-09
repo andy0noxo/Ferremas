@@ -1,0 +1,160 @@
+{% extends 'base.html' %}
+
+{% block title %}Registro de Usuario - Ferremas{% endblock %}
+
+{% block content %}
+<div class="register-container">
+    <h2>Registro de Usuario (Admin)</h2>
+    
+    {% if messages %}
+    <div class="messages">
+        {% for message in messages %}
+            <div class="message {{ message.tags }}">
+                {{ message }}
+            </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <form method="post" class="register-form">
+        {% csrf_token %}        <div class="form-group">
+            <label for="nombre">Nombre completo:</label>
+            <input type="text" id="nombre" name="nombre" value="{{ form_data.nombre|default:'' }}" 
+                required autocomplete="name">
+        </div>
+
+        <div class="form-group">
+            <label for="email">Email:</label>
+            <input type="email" id="email" name="email" value="{{ form_data.email|default:'' }}" 
+                required autocomplete="email">
+        </div>
+
+        <div class="form-group">
+            <label for="password">Contraseña:</label>
+            <input type="password" id="password" name="password" required minlength="8" 
+                autocomplete="new-password">
+            <small>Mínimo 8 caracteres, debe incluir mayúsculas, minúsculas, números y símbolos.</small>
+        </div>        <div class="form-group">
+            <label for="rut">RUT:</label>
+            <input type="text" id="rut" name="rut" value="{{ form_data.rut|default:'' }}" 
+                required pattern="^[0-9]{7,8}-[0-9kK]$" placeholder="12345678-9"
+                autocomplete="off">
+            <small>Formato: 12345678-9 o 1234567-8</small>
+        </div>
+
+        <div class="form-group">
+            <label for="rol">Rol:</label>
+            <select id="rol" name="rol" required>
+                <option value="Cliente">Cliente</option>
+                <option value="Vendedor">Vendedor</option>
+                <option value="Bodeguero">Bodeguero</option>
+                <option value="Contador">Contador</option>
+                <option value="Administrador">Administrador</option>
+                <option value="Contador">Contador</option>
+                <option value="Administrador">Administrador</option>
+            </select>
+        </div>
+
+        <button type="submit" class="submit-button">Registrarse</button>
+    </form>
+
+    <div class="login-link">
+        <a href="{% url 'core:login' %}">¿Ya tienes cuenta? Inicia sesión</a>
+    </div>
+</div>
+
+<style>
+    .register-container {
+        max-width: 400px;
+        margin: 2rem auto;
+        padding: 2rem;
+        background: white;
+        border-radius: 8px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+
+    .form-group {
+        margin-bottom: 1rem;
+    }
+
+    .form-group label {
+        display: block;
+        margin-bottom: 0.5rem;
+        font-weight: bold;
+        color: #374151;
+    }
+
+    .form-group input {
+        width: 100%;
+        padding: 0.75rem;
+        border: 1px solid #d1d5db;
+        border-radius: 4px;
+        font-size: 1rem;
+        transition: border-color 0.15s ease;
+    }
+
+    .form-group input:focus {
+        outline: none;
+        border-color: #2563eb;
+        box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+    }
+
+    .form-group small {
+        display: block;
+        margin-top: 0.25rem;
+        color: #6b7280;
+        font-size: 0.875rem;
+    }
+
+    .message {
+        padding: 1rem;
+        border-radius: 4px;
+        margin-bottom: 1rem;
+        font-size: 0.875rem;
+    }
+
+    .message.error {
+        background-color: #fee2e2;
+        color: #991b1b;
+        border: 1px solid #fecaca;
+    }
+
+    .message.success {
+        background-color: #dcfce7;
+        color: #166534;
+        border: 1px solid #bbf7d0;
+    }
+
+    .submit-button {
+        width: 100%;
+        padding: 0.75rem;
+        background-color: #2563eb;
+        color: white;
+        border: none;
+        border-radius: 4px;
+        font-size: 1rem;
+        font-weight: 500;
+        cursor: pointer;
+        transition: background-color 0.15s ease;
+    }
+
+    .submit-button:hover {
+        background-color: #1d4ed8;
+    }
+
+    .login-link {
+        text-align: center;
+        margin-top: 1.5rem;
+    }
+
+    .login-link a {
+        color: #2563eb;
+        text-decoration: none;
+        font-size: 0.875rem;
+    }
+
+    .login-link a:hover {
+        text-decoration: underline;
+    }
+</style>
+{% endblock %}

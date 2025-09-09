@@ -1,0 +1,23 @@
+{% extends 'base.html' %}
+{% block title %}Detalle de Producto{% endblock %}
+{% block nav %}
+<ul>
+    <li><a href="{% url 'core:dashboard' %}">Inicio</a></li>
+    <li><a href="{% url 'core:productos_list' %}">Productos</a></li>
+</ul>
+{% endblock %}
+{% block content %}
+<h2>{{ producto.nombre }}</h2>
+<p><strong>Descripción:</strong> {{ producto.descripcion }}</p>
+<p><strong>Precio:</strong> ${{ producto.precio_clp|default:producto.precio|floatformat:0 }} CLP {% if producto.precio_usd %}/ ${{ producto.precio_usd|floatformat:2 }} USD{% endif %}</p>
+<p><strong>Marca:</strong> {{ producto.marca.nombre }}</p>
+<p><strong>Categoría:</strong> {{ producto.categoria.nombre }}</p>
+<p><strong>Stock:</strong> {% if producto.stocks %}
+    <ul>
+    {% for stock in producto.stocks %}
+        <li>{{ stock.sucursal.nombre }}: {{ stock.cantidad }}</li>
+    {% endfor %}
+    </ul>
+{% else %}No disponible{% endif %}</p>
+<a href="{% url 'core:productos_list' %}">Volver al listado</a>
+{% endblock %}

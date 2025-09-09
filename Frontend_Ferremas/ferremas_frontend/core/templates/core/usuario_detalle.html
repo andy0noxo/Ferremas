@@ -1,0 +1,49 @@
+{% extends 'base.html' %}
+{% block title %}Detalle de Usuario{% endblock %}
+{% block nav %}
+<ul>
+    <li><a href="{% url 'core:dashboard' %}">Inicio</a></li>
+    <li><a href="{% url 'core:usuarios_list' %}">Usuarios</a></li>
+</ul>
+{% endblock %}
+{% block content %}
+<h2>{{ usuario.nombre }}</h2>
+<p><strong>Email:</strong> {{ usuario.email }}</p>
+<p><strong>RUT:</strong> {{ usuario.rut }}</p>
+<p><strong>Rol:</strong> {{ usuario.rol.nombre }}</p>
+<p><strong>Sucursal:</strong> {{ usuario.sucursal.nombre }}</p>
+
+{% if usuario.rol.nombre == 'Cliente' %}
+    <h3>Pedidos del usuario</h3>
+    {% if pedidos and pedidos|length > 0 %}
+    <table border="1">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Fecha</th>
+                <th>Estado</th>
+                <th>Total</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for pedido in pedidos %}
+            <tr>
+                <td>{{ pedido.id }}</td>
+                <td>{{ pedido.fecha_pedido|default:"-" }}</td>
+                <td>{{ pedido.estado|default:"-" }}</td>
+                <td>${{ pedido.total|default:"-" }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+        <p>Este usuario no tiene pedidos registrados.</p>
+    {% endif %}
+{% endif %}
+
+<form method="post" action="{% url 'core:usuario_eliminar' usuario.id %}" onsubmit="return confirm('¿Está seguro que desea eliminar este usuario? Esta acción no se puede deshacer.');">
+    {% csrf_token %}
+    <button type="submit" style="color:red;">Eliminar usuario</button>
+</form>
+<a href="{% url 'core:usuarios_list' %}">Volver al listado</a>
+{% endblock %}

@@ -1,0 +1,94 @@
+{% extends 'base.html' %}
+{% load dict_get %}
+{% block title %}Productos{% endblock %}
+{% block nav %}
+<ul>
+    <li><a href="{% url 'core:dashboard' %}">Inicio</a></li>
+    {% if user.rol == 'Administrador' or user.rol == 'Bodeguero' %}
+        <li><a href="{% url 'core:usuarios_list' %}">Usuarios</a></li>
+        <li><a href="{% url 'core:productos_list' %}">Productos</a></li>
+        <li><a href="{% url 'core:informe_ventas_mensual' %}">Informe Ventas Mensual</a></li>
+    {% else %}
+        <li><a href="{% url 'core:productos_list' %}">Productos</a></li>
+        <li><a href="{% url 'pedidos:pedido_crear' %}">Mi Pedido ({{ pedido_count|default:"0" }})</a></li>
+    {% endif %}
+</ul>
+{% endblock %}
+{% block content %}
+<h2>Listado de Productos</h2>
+<div class="search-bar-container" style="background: #f8f9fa; padding: 20px; border-radius: 8px; margin-bottom: 24px; box-shadow: 0 2px 8px rgba(0,0,0,0.05);">
+    <form method="get" style="display: flex; gap: 12px; align-items: center; flex-wrap: wrap; justify-content: flex-start;">
+        <input type="text" id="search" name="search" placeholder="Buscar producto..." value="{{ search }}" style="padding: 8px 12px; border: 1px solid #ccc; border-radius: 4px; width: 220px;">
+        <select id="categoria_id" name="categoria_id" style="padding: 8px 12px; border: 1px solid #ccc; border-radius: 4px; min-width: 160px;">
+            <option value="">Todas las categorías</option>
+            {% for categoria in categorias %}
+                <option value="{{ categoria.id }}" {% if categoria_id == categoria.id|stringformat:'s' %}selected{% endif %}>{{ categoria.nombre }}</option>
+            {% endfor %}
+        </select>
+        <select id="sucursal_id" name="sucursal_id" style="padding: 8px 12px; border: 1px solid #ccc; border-radius: 4px; min-width: 160px;">
+            <option value="">Todas las sucursales</option>
+            {% for sucursal in sucursales %}
+                <option value="{{ sucursal.id }}" {% if sucursal_id == sucursal.id|stringformat:'s' %}selected{% endif %}>{{ sucursal.nombre }}</option>
+            {% endfor %}
+        </select>
+        <button type="submit" style="background: #007bff; color: white; border: none; padding: 10px 24px; border-radius: 4px; font-weight: 500; cursor: pointer;">Filtrar</button>
+    </form>
+</div>
+{% if user.rol == 'Administrador' or user.rol == 'Bodeguero' %}
+<a href="{% url 'core:producto_crear' %}" class="btn btn-primary">Crear Producto</a>
+{% endif %}
+<table border="1" style="width:100%; border-collapse:collapse; background:white; box-shadow:0 2px 8px rgba(0,0,0,0.04);">
+    <thead style="background:#007bff; color:white;">
+        <tr>
+            <th>Nombre</th>
+            <th>Descripción</th>
+            <th>Precio (CLP)</th>
+            <th>Precio (USD)</th>
+            <th>Marca</th>
+            <th>Categoría</th>
+            {% if user.rol != 'Administrador' and user.rol != 'Bodeguero' %}
+                <th>Agregar al pedido</th>
+            {% endif %}
+            {% if user.rol == 'Administrador' or user.rol == 'Bodeguero' %}
+                <th>Acciones</th>
+            {% endif %}
+        </tr>
+    </thead>
+    <tbody>
+        {% for producto in productos %}
+        <tr>
+            <td>{{ producto.nombre }}</td>
+            <td>{{ producto.descripcion }}</td>
+            <td>${{ producto.precio_clp|default:producto.precio|floatformat:0 }}</td>
+            <td>{% if producto.precio_usd %}${{ producto.precio_usd|floatformat:2 }}{% else %}-{% endif %}</td>
+            <td>{{ producto.marca.nombre }}</td>
+            <td>{{ producto.categoria.nombre }}</td>
+            {% if user.rol != 'Administrador' and user.rol != 'Bodeguero' %}
+            <td>
+                <form method="post" action="{% url 'core:productos_list' %}" style="display:inline;">
+                    {% csrf_token %}
+                    <input type="hidden" name="producto_id" value="{{ producto.id }}">
+                    <input type="number" name="cantidad" value="1" min="1" style="width:50px;">
+                    <button type="submit">Agregar</button>
+                </form>
+                {% if carrito and producto.id|stringformat:'s' in carrito %}
+                    <span style="color:green; font-size:0.9em;">Agregado: {{ carrito|dict_get:producto.id|stringformat:'s' }}</span>
+                {% endif %}
+            </td>
+            {% endif %}
+            {% if user.rol == 'Administrador' or user.rol == 'Bodeguero' %}
+            <td>
+                <a href="{% url 'core:producto_editar' producto.id %}">Editar</a>
+                <form method="post" action="{% url 'core:producto_eliminar' producto.id %}" style="display:inline;">
+                    {% csrf_token %}
+                    <button type="submit" onclick="return confirm('¿Seguro que desea eliminar este producto?');">Eliminar</button>
+                </form>
+            </td>
+            {% endif %}
+        </tr>
+        {% empty %}
+        <tr><td colspan="8">No hay productos disponibles.</td></tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock %}

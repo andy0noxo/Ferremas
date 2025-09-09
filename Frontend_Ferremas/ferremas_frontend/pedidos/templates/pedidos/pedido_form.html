@@ -1,0 +1,101 @@
+{% extends 'base.html' %}
+
+{% block content %}
+{% if user.rol == 'Administrador' %}
+    <h2>No disponible para administradores.</h2>
+{% else %}
+<h2>Crear Pedido</h2>
+{% if form.errors %}
+    <div class="errorlist">
+        <ul>
+        {% for field in form %}
+            {% for error in field.errors %}
+                <li>{{ field.label }}: {{ error }}</li>
+            {% endfor %}
+        {% endfor %}
+        {% for error in form.non_field_errors %}
+            <li>{{ error }}</li>
+        {% endfor %}
+        </ul>
+    </div>
+{% endif %}
+<form method="post">
+    {% csrf_token %}
+    <label for="sucursal_id">Sucursal de retiro:</label>
+    <select id="sucursal_id" name="sucursal_id" required>
+        <option value="">Seleccione</option>
+        {% for sucursal in sucursales %}
+            <option value="{{ sucursal.id }}">{{ sucursal.nombre }}</option>
+        {% endfor %}
+    </select><br>
+    <label for="metodo_pago">Método de pago:</label>
+    <select id="metodo_pago" name="metodo_pago" required>
+        <option value="">Seleccione</option>
+        <option value="debito">Débito</option>
+        <option value="credito">Crédito</option>
+        <option value="transferencia">Transferencia</option>
+    </select><br>
+    <h3>Productos</h3>
+    <table border="1">
+        <thead>
+            <tr>
+                <th>Producto</th>
+                <th>Precio (CLP)</th>
+                <th>Precio (USD)</th>
+                <th>Stock</th>
+                <th>Cantidad</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for producto in productos %}
+            <tr>
+                <td>{{ producto.nombre }}</td>
+                <td>{% if producto.precio_clp %}${{ producto.precio_clp|floatformat:0 }}{% elif producto.precio %}${{ producto.precio|floatformat:0 }}{% else %}-{% endif %}</td>
+                <td>{% if producto.precio_usd %}${{ producto.precio_usd|floatformat:2 }}{% else %}-{% endif %}</td>
+                <td id="stock-{{ producto.id }}">-</td>
+                <td>
+                    <input type="number" name="productos" min="0" max="0" value="{{ producto.cantidad_carrito|default:'0' }}" data-producto-id="{{ producto.id }}">
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    <input type="hidden" name="productos" id="productos_hidden">
+    <button type="submit" onclick="return prepararProductos();">Crear Pedido</button>
+</form>
+<script id="stocks-data" type="application/json">{{ stocks_json|safe }}</script>
+<script>
+var stocks = JSON.parse(document.getElementById('stocks-data').textContent);
+function actualizarStockInputs() {
+    var sucursalId = document.getElementById('sucursal_id').value;
+    document.querySelectorAll('input[name="productos"]').forEach(function(input) {
+        var prodId = input.getAttribute('data-producto-id');
+        var stock = (stocks[prodId] && stocks[prodId][sucursalId] !== undefined) ? stocks[prodId][sucursalId] : 0;
+        input.max = stock;
+        document.getElementById('stock-' + prodId).textContent = stock;
+        if (parseInt(input.value) > stock) {
+            input.value = stock;
+        }
+        input.disabled = (stock == 0);
+    });
+}
+window.onload = function() {
+    actualizarStockInputs();
+};
+document.getElementById('sucursal_id').addEventListener('change', actualizarStockInputs);
+function prepararProductos() {
+    var productos = [];
+    document.querySelectorAll('input[name="productos"]').forEach(function(input) {
+        var cantidad = parseInt(input.value);
+        var id = input.getAttribute('data-producto-id');
+        if (cantidad > 0 && id) {
+            productos.push(id + '-' + cantidad);
+        }
+    });
+    document.getElementById('productos_hidden').value = productos;
+    return true;
+}
+</script>
+{% endif %}
+<a href="{% url 'pedidos:pedidos_list' %}">Volver al listado</a>
+{% endblock %}

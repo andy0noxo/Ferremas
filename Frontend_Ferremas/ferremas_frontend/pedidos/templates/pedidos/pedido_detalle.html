@@ -1,0 +1,45 @@
+{% extends 'base.html' %}
+{% block title %}Detalle de Pedido{% endblock %}
+{% block nav %}
+<ul>
+    <li><a href="{% url 'core:dashboard' %}">Inicio</a></li>
+    <li><a href="{% url 'pedidos:pedidos_list' %}">Pedidos</a></li>
+</ul>
+{% endblock %}
+{% block content %}
+<h2>Detalle de Pedido #{{ pedido.id }}</h2>
+<p><strong>Usuario:</strong> {{ pedido.usuario.nombre }}</p>
+<p><strong>Fecha:</strong> {{ pedido.fecha_creacion|default_if_none:'-' }}</p>
+<p><strong>Estado:</strong> {{ pedido.estado }}</p>
+<p><strong>Total:</strong> ${{ pedido.total }} CLP {% if pedido.total_usd %} / ${{ pedido.total_usd|floatformat:2 }} USD{% endif %}</p>
+<h3>Productos</h3>
+<table border="1">
+    <thead>
+        <tr>
+            <th>Producto</th>
+            <th>Cantidad</th>
+            <th>Precio Unitario (CLP)</th>
+            <th>Precio Unitario (USD)</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for detalle in pedido.detalles %}
+        <tr>
+            <td>{{ detalle.producto.nombre }}</td>
+            <td>{{ detalle.cantidad }}</td>
+            <td>${{ detalle.precio_unitario }}</td>
+            <td>
+                {% if detalle.producto.precio_usd %}
+                    ${{ detalle.producto.precio_usd|floatformat:2 }}
+                {% elif pedido.total_usd and pedido.total %}
+                    ${{ detalle.precio_unitario|floatformat:2|add:'0.0'|floatformat:2|floatformat:2 }}
+                {% else %}-{% endif %}
+            </td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="4">Sin productos.</td></tr>
+        {% endfor %}
+    </tbody>
+</table>
+<a href="{% url 'pedidos:pedidos_list' %}">Volver al listado</a>
+{% endblock %}

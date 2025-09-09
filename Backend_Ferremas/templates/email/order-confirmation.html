@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Confirmación de Pedido - Ferremas</title>
+    <style>
+        body { font-family: Arial, sans-serif; max-width: 600px; margin: 20px auto; padding: 20px; }
+        .header { color: #1a237e; border-bottom: 2px solid #1a237e; padding-bottom: 10px; }
+        .content { margin-top: 20px; }
+        table { width: 100%; border-collapse: collapse; margin: 20px 0; }
+        th, td { padding: 10px; border: 1px solid #ddd; text-align: left; }
+        .total { font-weight: bold; color: #1a237e; }
+        .footer { margin-top: 30px; color: #666; font-size: 0.9em; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h2>¡Gracias por tu compra en Ferremas!</h2>
+        <p>N° de Pedido: <strong>#{{pedidoId}}</strong></p>
+        <p>Fecha: {{fecha}}</p>
+    </div>
+
+    <div class="content">
+        <h3>Detalles del Pedido:</h3>
+        <table>
+            <thead>
+                <tr>
+                    <th>Producto</th>
+                    <th>Cantidad</th>
+                    <th>Precio Unitario</th>
+                    <th>Total</th>
+                </tr>
+            </thead>
+            <tbody>
+                {{#productos}}
+                <tr>
+                    <td>{{nombre}}</td>
+                    <td>{{cantidad}}</td>
+                    <td>${{precio}}</td>
+                    <td>${{total}}</td>
+                </tr>
+                {{/productos}}
+            </tbody>
+        </table>
+        <p class="total">Total General: ${{totalPedido}}</p>
+    </div>
+
+    <div class="footer">
+        <p>¿Tienes dudas? Contáctanos a <a href="mailto:soporte@ferremas.cl">soporte@ferremas.cl</a></p>
+        <p>© {{anio}} Ferremas - Todos los derechos reservados</p>
+    </div>
+</body>
+</html>
