@@ -12,11 +12,11 @@ db.sqlite3
 *.pot
 *.mo
 *.env
-.env
 .env.*
 
 # Node.js
 node_modules/
+features/_debug/
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
