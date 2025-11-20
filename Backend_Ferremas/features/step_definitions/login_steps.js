@@ -111,3 +111,30 @@ Then('aparece un mensaje de ingreso correcto', async function () {
   const texto = await this.driver.findElement(By.tagName('h1')).getText();
   if (texto !== 'Bienvenido') throw new Error(`Se esperaba "Bienvenido", se obtuvo "${texto}"`);
 });
+
+Then('aparece un mensaje de datos equivocados', async function () {
+  // Espera hasta que aparezca un elemento de error
+  const selectors = [
+    By.css('.alert-danger'),
+    By.css('.error-message'),
+    By.css('.invalid-feedback'),
+    By.xpath("//*[contains(text(),'equivocado') or contains(text(),'incorrecto')]")
+  ];
+  let found = false;
+  for (const sel of selectors) {
+    try {
+      await this.driver.wait(until.elementLocated(sel), 3000);
+      const el = await this.driver.findElement(sel);
+      const texto = await el.getText();
+      if (texto && (texto.toLowerCase().includes('equivocado') || texto.toLowerCase().includes('incorrecto'))) {
+        found = true;
+        break;
+      }
+    } catch (e) {
+      // try next selector
+    }
+  }
+  if (!found) {
+    throw new Error('No se encontró el mensaje de error esperado para datos equivocados o incorrectos.');
+  }
+});
