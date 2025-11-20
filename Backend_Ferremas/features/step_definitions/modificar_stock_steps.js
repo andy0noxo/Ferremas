@@ -1,23 +1,10 @@
 const { Given, When, Then } = require('@cucumber/cucumber');
 const { By, until, Key } = require('selenium-webdriver');
+const { performBodegueroLogin } = require('./common_steps');
 // ...existing code...
 
 Given('el usuario accede a la pagina como bodeguero', async function () {
-  // Login como bodeguero
-  await this.driver.get(this.baseUrl + '/login/');
-  await this.driver.sleep(200);
-  const userEl = await this.driver.findElement(By.name('username'));
-  await userEl.clear();
-  await userEl.sendKeys('bodeguero@bodeguero.com');
-  const passEl = await this.driver.findElement(By.name('password'));
-  await passEl.clear();
-  await passEl.sendKeys('Bodeguero.1234');
-  const btn = await this.driver.findElement(By.css('button[type="submit"]'));
-  await btn.click();
-  await this.driver.sleep(500);
-  const h1 = await this.driver.findElement(By.tagName('h1'));
-  const texto = await h1.getText();
-  if (texto !== 'Bienvenido') throw new Error('No se logró el login como bodeguero');
+  await performBodegueroLogin(this.driver, this.baseUrl);
 });
 
 When('accede a Stock General', async function () {

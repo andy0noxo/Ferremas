@@ -43,17 +43,13 @@ async function findElementWithFallback(driver, selectors, timeout = 5000) {
   return null;
 }
 
-Given('que puedo acceder a la pagina', async function () {
-  await this.driver.get(this.baseUrl + '/');
-});
-
-When('puedo acceder al login', async function () {
+Given('el usuario accede a la pagina de login', async function () {
   await this.driver.get(this.baseUrl + '/login/');
   // wait for page to stabilise
   await this.driver.sleep(200);
 });
 
-When('ingreso como usuario {string}', async function (username) {
+When('ingreso email de login {string}', async function (email) {
   const selectors = [
     By.id('id_username'),
     By.name('username'),
@@ -61,45 +57,54 @@ When('ingreso como usuario {string}', async function (username) {
     By.css('input[type="email"]'),
     By.css('input[type="text"]')
   ];
-
-  const el = await findElementWithFallback(this.driver, selectors, 5000);
-  if (!el) {
-    const url = await this.driver.getCurrentUrl();
-    throw new Error(`No se encontró el campo usuario en ${url}. Buscados: id=id_username, name=username, name=email, input[type=email], input[type=text]. Capturé snapshot en features/_debug/`);
+  let el = null;
+  for (const sel of selectors) {
+    try {
+      await this.driver.wait(until.elementLocated(sel), 5000);
+      el = await this.driver.findElement(sel);
+      break;
+    } catch (e) {}
   }
+  if (!el) throw new Error('No se encontró el campo usuario/email');
   await el.clear();
-  await el.sendKeys(username);
+  await el.sendKeys(email);
 });
 
-When('ingreso como clave {string}', async function (password) {
+When('ingreso contraseña de login {string}', async function (password) {
   const selectors = [
     By.id('id_password'),
     By.name('password'),
     By.css('input[type="password"]')
   ];
-
-  const el = await findElementWithFallback(this.driver, selectors, 5000);
-  if (!el) {
-    const url = await this.driver.getCurrentUrl();
-    throw new Error(`No se encontró el campo password en ${url}. Buscados: id=id_password, name=password, input[type=password]. Capturé snapshot en features/_debug/`);
+  let el = null;
+  for (const sel of selectors) {
+    try {
+      await this.driver.wait(until.elementLocated(sel), 5000);
+      el = await this.driver.findElement(sel);
+      break;
+    } catch (e) {}
   }
+  if (!el) throw new Error('No se encontró el campo password');
   await el.clear();
   await el.sendKeys(password);
 });
 
-When('realizo el envío de los datos', async function () {
+When('realizo el envío de los datos de login', async function () {
   const selectors = [
     By.css('button[type="submit"]'),
     By.css('input[type="submit"]'),
     By.css('button.btn-primary'),
     By.css('button[type="button"][onclick*="submit"]')
   ];
-
-  const btn = await findElementWithFallback(this.driver, selectors, 5000);
-  if (!btn) {
-    const url = await this.driver.getCurrentUrl();
-    throw new Error(`No se encontró el botón de envío en ${url}. Capturé snapshot en features/_debug/`);
+  let btn = null;
+  for (const sel of selectors) {
+    try {
+      await this.driver.wait(until.elementLocated(sel), 5000);
+      btn = await this.driver.findElement(sel);
+      break;
+    } catch (e) {}
   }
+  if (!btn) throw new Error('No se encontró el botón de envío');
   await btn.click();
   // espera breve para que la navegación ocurra
   await this.driver.sleep(500);
@@ -130,11 +135,7 @@ Then('aparece un mensaje de datos equivocados', async function () {
         found = true;
         break;
       }
-    } catch (e) {
-      // try next selector
-    }
+    } catch (e) {}
   }
-  if (!found) {
-    throw new Error('No se encontró el mensaje de error esperado para datos equivocados o incorrectos.');
-  }
+  if (!found) throw new Error('No se encontró el mensaje de error esperado para datos equivocados o incorrectos.');
 });

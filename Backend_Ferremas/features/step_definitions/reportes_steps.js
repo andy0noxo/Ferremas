@@ -1,23 +1,9 @@
 const { Given, When, Then } = require('@cucumber/cucumber');
 const { By, until } = require('selenium-webdriver');
-// ...existing code...
+const { performLogin } = require('./common_steps');
 
-Given('el usuario accede a la pagina como administrador', async function () {
-  // Login como administrador
-  await this.driver.get(this.baseUrl + '/login/');
-  await this.driver.sleep(200);
-  const userEl = await this.driver.findElement(By.name('username'));
-  await userEl.clear();
-  await userEl.sendKeys('an.salcedo@duocuc.cl');
-  const passEl = await this.driver.findElement(By.name('password'));
-  await passEl.clear();
-  await passEl.sendKeys('Admin.123456789');
-  const btn = await this.driver.findElement(By.css('button[type="submit"]'));
-  await btn.click();
-  await this.driver.sleep(500);
-  const h1 = await this.driver.findElement(By.tagName('h1'));
-  const texto = await h1.getText();
-  if (texto !== 'Bienvenido') throw new Error('No se logró el login como administrador');
+Given('el usuario accede a la pagina de reportes como administrador', async function () {
+  await performLogin(this.driver, this.baseUrl);
 });
 
 When('accede a Informe Ventas Mensual', async function () {
@@ -25,7 +11,7 @@ When('accede a Informe Ventas Mensual', async function () {
   await this.driver.sleep(200);
 });
 
-When('selecciona sucursal {string}', async function (sucursal) {
+When('selecciona sucursal para reportes {string}', async function (sucursal) {
   const el = await this.driver.findElement(By.name('sucursal'));
   await el.sendKeys(sucursal);
   await this.driver.sleep(200);
@@ -43,4 +29,3 @@ Then('muestra informe de ventas del mes', async function () {
   const texto = await informe.getText();
   if (!texto || texto.length === 0) throw new Error('No se muestra el informe de ventas del mes');
 });
-// ...existing code...

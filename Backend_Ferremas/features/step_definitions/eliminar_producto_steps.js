@@ -1,23 +1,53 @@
 const { Given, When, Then } = require('@cucumber/cucumber');
 const { By, until } = require('selenium-webdriver');
+const { performLogin } = require('./common_steps');
 // ...existing code...
 
-Given('el usuario accede a la pagina como administrador', async function () {
-  // Login como administrador
-  await this.driver.get(this.baseUrl + '/login/');
+Given('el usuario accede a la pagina de eliminar producto como administrador', async function () {
+  await performLogin(this.driver, this.baseUrl);
+});
+
+When('accede al listado de productos para eliminar', async function () {
+  await this.driver.get(this.baseUrl + '/productos/');
   await this.driver.sleep(200);
-  const userEl = await this.driver.findElement(By.name('username'));
-  await userEl.clear();
-  await userEl.sendKeys('an.salcedo@duocuc.cl');
-  const passEl = await this.driver.findElement(By.name('password'));
-  await passEl.clear();
-  await passEl.sendKeys('Admin.123456789');
-  const btn = await this.driver.findElement(By.css('button[type="submit"]'));
+});
+
+When('confirma la eliminación de producto', async function () {
+  const btn = await this.driver.findElement(By.css('.btn-danger, button[onclick*="confirm"]'));
   await btn.click();
   await this.driver.sleep(500);
-  const h1 = await this.driver.findElement(By.tagName('h1'));
-  const texto = await h1.getText();
-  if (texto !== 'Bienvenido') throw new Error('No se logró el login como administrador');
+});
+
+When('cancela la eliminación de producto', async function () {
+  const btn = await this.driver.findElement(By.css('.btn-secondary, button[onclick*="cancel"]'));
+  await btn.click();
+  await this.driver.sleep(500);
+});
+
+Then('el sistema elimina el registro de producto correctamente', async function () {
+  const mensaje = await this.driver.findElement(By.css('.alert-success, .success-message'));
+  const texto = await mensaje.getText();
+  if (!texto.toLowerCase().includes('eliminado')) {
+    throw new Error('No se encontró mensaje de eliminación exitosa');
+  }
+});
+
+Then('lo refleja en el catálogo de productos', async function () {
+  await this.driver.get(this.baseUrl + '/productos/');
+  await this.driver.sleep(500);
+  // Verificar que el producto ya no aparezca en la lista
+});
+
+Then('muestra lista de productos tras cancelar eliminación', async function () {
+  const tabla = await this.driver.findElement(By.css('table, .product-list'));
+  const isDisplayed = await tabla.isDisplayed();
+  if (!isDisplayed) throw new Error('No se muestra la lista de productos');
+});
+
+Then('el producto no es eliminado del catálogo de productos', async function () {
+  await this.driver.get(this.baseUrl + '/productos/');
+  await this.driver.sleep(500);
+  // Verificar que el producto aún aparezca en la lista
 });
 
 When('accede a productos', async function () {

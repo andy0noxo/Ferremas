@@ -1,26 +1,13 @@
 const { Given, When, Then } = require('@cucumber/cucumber');
 const { By, until } = require('selenium-webdriver');
+const { performClienteLogin } = require('./common_steps');
 // ...existing code...
 
-Given('el usuario accede a la pagina como cliente', async function () {
-  // Login como cliente
-  await this.driver.get(this.baseUrl + '/login/');
-  await this.driver.sleep(200);
-  const userEl = await this.driver.findElement(By.name('username'));
-  await userEl.clear();
-  await userEl.sendKeys('cliente@cliente.com');
-  const passEl = await this.driver.findElement(By.name('password'));
-  await passEl.clear();
-  await passEl.sendKeys('Cliente.1234');
-  const btn = await this.driver.findElement(By.css('button[type="submit"]'));
-  await btn.click();
-  await this.driver.sleep(500);
-  const h1 = await this.driver.findElement(By.tagName('h1'));
-  const texto = await h1.getText();
-  if (texto !== 'Bienvenido') throw new Error('No se logró el login como cliente');
+Given('el usuario accede a la pagina de carrito compras como cliente', async function () {
+  await performClienteLogin(this.driver, this.baseUrl);
 });
 
-When('accede a productos', async function () {
+When('accede a productos para carrito', async function () {
   await this.driver.get(this.baseUrl + '/productos/');
   await this.driver.sleep(200);
 });
@@ -52,7 +39,7 @@ When('selecciona metodo de pago {string}', async function (metodo) {
   await this.driver.sleep(200);
 });
 
-When('selecciona sucursal {string}', async function (sucursal) {
+When('selecciona sucursal para carrito {string}', async function (sucursal) {
   const el = await this.driver.findElement(By.name('sucursal'));
   await el.sendKeys(sucursal);
   await this.driver.sleep(200);
