@@ -1,0 +1,3 @@
+# Este archivo mantiene la estructura de la carpeta _evidencias en el repositorio
+# Las evidencias generadas automáticamente (screenshots, HTML) se ignoran en .gitignore
+# pero esta carpeta debe existir para el funcionamiento del sistema de automatización

@@ -1,6 +1,6 @@
 Feature: F01 Registrar Usuario
 
-  Scenario: CP22 Registrar usuario correcto
+  Scenario: CP01a Registrar usuario correcto
     Given el usuario accede a la pagina de registro de usuario como administrador
     When accede al formulario de registro de usuario
     And ingreso nombre de usuario "Cliente"
@@ -12,7 +12,7 @@ Feature: F01 Registrar Usuario
     Then usuario se crea correctamente
     And aparece en la lista de usuarios
 
-  Scenario: CP22b Registrar usuario bodeguero correcto
+  Scenario: CP01b Registrar usuario bodeguero correcto
     Given el usuario accede a la pagina de registro de usuario como administrador
     When accede al formulario de registro de usuario
     And ingreso nombre de usuario "Bodeguero"
@@ -24,7 +24,7 @@ Feature: F01 Registrar Usuario
     Then usuario se crea correctamente
     And aparece en la lista de usuarios
 
-  Scenario: CP23 Registrar usuario con mail duplicado
+  Scenario: CP02 Registrar usuario con mail duplicado
     Given el usuario accede a la pagina de registro de usuario como administrador
     When accede al formulario de registro de usuario
     And ingreso nombre de usuario "mailduplicado"
@@ -35,7 +35,7 @@ Feature: F01 Registrar Usuario
     And click en crear usuario
     Then aparece mensaje de mail ya registrado
 
-  Scenario: CP24 Registrar usuario con mail vacio
+  Scenario: CP03 Registrar usuario con mail vacio
     Given el usuario accede a la pagina de registro de usuario como administrador
     When accede al formulario de registro de usuario
     And ingreso nombre de usuario "mailvacio"
@@ -46,7 +46,7 @@ Feature: F01 Registrar Usuario
     And click en crear usuario
     Then aparece mensaje de que falta ingresar email
 
-  Scenario: CP25 Registrar usuario con rut duplicado
+  Scenario: CP04 Registrar usuario con rut duplicado
     Given el usuario accede a la pagina de registro de usuario como administrador
     When accede al formulario de registro de usuario
     And ingreso nombre de usuario "rutduplicado"
@@ -57,7 +57,7 @@ Feature: F01 Registrar Usuario
     And click en crear usuario
     Then aparece mensaje de que el rut ya esta registrado
 
-  Scenario: CP26 Registrar usuario con rut vacio
+  Scenario: CP05 Registrar usuario con rut vacio
     Given el usuario accede a la pagina de registro de usuario como administrador
     When accede al formulario de registro de usuario
     And ingreso nombre de usuario "rutvacio"

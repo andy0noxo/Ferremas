@@ -3,28 +3,28 @@ const { By, until } = require('selenium-webdriver');
 // ...existing code...
 
 Given('el usuario accede a la pagina de registro de usuario como administrador', async function () {
-  // Login como administrador
+  // Login como administrador - optimizado
   await this.driver.get(this.baseUrl + '/login/');
-  await this.driver.sleep(1000);
+  await this.driver.sleep(500); // Reducido de 1000ms
   
-  // Esperar a que el formulario de login esté presente
-  await this.driver.wait(until.elementLocated(By.name('email')), 10000);
+  // Timeouts reducidos para mejor rendimiento
+  await this.driver.wait(until.elementLocated(By.name('email')), 3000);
   
   const userEl = await this.driver.findElement(By.name('email'));
   await userEl.clear();
   await userEl.sendKeys('an.salcedo@duocuc.cl');
   
-  await this.driver.wait(until.elementLocated(By.name('password')), 5000);
+  await this.driver.wait(until.elementLocated(By.name('password')), 2000);
   const passEl = await this.driver.findElement(By.name('password'));
   await passEl.clear();
   await passEl.sendKeys('Admin.123456789');
   
-  await this.driver.wait(until.elementLocated(By.css('button[type="submit"]')), 5000);
+  await this.driver.wait(until.elementLocated(By.css('button[type="submit"]')), 2000);
   const btn = await this.driver.findElement(By.css('button[type="submit"]'));
   await btn.click();
   
-  // Esperar a que la página se redirija después del login
-  await this.driver.sleep(2000);
+  // Espera reducida después del login
+  await this.driver.sleep(1000); // Reducido de 2000ms
   
   // Verificar que el login fue exitoso (puede ser dashboard, home, etc.)
   try {
