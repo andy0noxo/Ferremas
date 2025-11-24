@@ -1,6 +1,6 @@
 Feature: F06 Eliminar Usuario
 
-  Scenario: CP23 Eliminar usuario correcto
+  Scenario: CP24 Eliminar usuario correcto
     Given el usuario accede a la pagina de eliminar usuario como administrador
     When accede al listado de usuario para eliminar
     And click en eliminar usuario "Juan Pérez"
@@ -8,7 +8,7 @@ Feature: F06 Eliminar Usuario
     Then aparece mensaje de usuario eliminado exitosamente
     And el usuario es eliminado de la lista de usuarios registrados
 
-  Scenario: CP24 Cancelar eliminar usuario
+  Scenario: CP25 Cancelar eliminar usuario
     Given el usuario accede a la pagina de eliminar usuario como administrador
     When accede al listado de usuario para eliminar
     And click en eliminar usuario "Juan Pérez"

@@ -1,6 +1,6 @@
 Feature: F03 Registrar Producto
 
-  Scenario: CP10 Registrar producto correcto
+  Scenario: CP11 Registrar producto correcto
     Given el usuario accede a la pagina de registro de producto como administrador
     When accede al formulario de registro de producto
     And ingreso nombre de producto "Producto1"
@@ -11,7 +11,7 @@ Feature: F03 Registrar Producto
     Then el sistema guarda el producto correctamente
     And lo muestra en el catálogo de productos
 
-  Scenario: CP11 Registrar producto vacío
+  Scenario: CP12 Registrar producto vacío
     Given el usuario accede a la pagina de registro de producto como administrador
     When accede al formulario de registro de producto
     And ingreso nombre de producto ""
@@ -21,7 +21,7 @@ Feature: F03 Registrar Producto
     And selecciono categoria de producto ""
     Then aparece mensaje de datos faltantes en producto
 
-  Scenario: CP12 Registrar producto con precio negativo
+  Scenario: CP13 Registrar producto con precio negativo
     Given el usuario accede a la pagina de registro de producto como administrador
     When accede al formulario de registro de producto
     And ingreso nombre de producto "Producto2"
@@ -31,7 +31,7 @@ Feature: F03 Registrar Producto
     And selecciono categoria de producto "Herramientas Eléctricas"
     Then aparece mensaje de valor debe ser mayor a 0 en producto
 
-  Scenario: CP13 Registrar producto con precio 0
+  Scenario: CP14 Registrar producto con precio 0
     Given el usuario accede a la pagina de registro de producto como administrador
     When accede al formulario de registro de producto
     And ingreso nombre de producto "Producto2"

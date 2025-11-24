@@ -1,6 +1,6 @@
 Feature: F05 Modificar Usuario
 
-  Scenario: CP18 Modificar usuario correcto
+  Scenario: CP19 Modificar usuario correcto
     Given el usuario accede a la pagina de modificar usuario como administrador
     When accede al listado de usuario para modificar
     And click en modificar usuario "Juan Pérez"
@@ -12,7 +12,7 @@ Feature: F05 Modificar Usuario
     Then aparece mensaje de que usuario modificado exitosamente
     And muestra lista de usuarios modificados
 
-  Scenario: CP19 Modificar usuario con rut duplicado
+  Scenario: CP20 Modificar usuario con rut duplicado
     Given el usuario accede a la pagina de modificar usuario como administrador
     When accede al listado de usuario para modificar
     And click en modificar usuario "Juan Pérez"
@@ -23,7 +23,7 @@ Feature: F05 Modificar Usuario
     And click en crear usuario modificado
     Then aparece mensaje de que el rut ya esta registrado en usuario modificado
 
-  Scenario: CP20 Modificar usuario con rut vacio
+  Scenario: CP21 Modificar usuario con rut vacio
     Given el usuario accede a la pagina de modificar usuario como administrador
     When accede al listado de usuario para modificar
     And click en modificar usuario "Juan Pérez"
@@ -34,7 +34,7 @@ Feature: F05 Modificar Usuario
     And click en crear usuario modificado
     Then aparece mensaje de que falta ingresar el rut en usuario modificado
 
-  Scenario: CP21 Modificar usuario con mail duplicado
+  Scenario: CP22 Modificar usuario con mail duplicado
     Given el usuario accede a la pagina de modificar usuario como administrador
     When accede al listado de usuario para modificar
     And click en modificar usuario "Juan Pérez"
@@ -45,7 +45,7 @@ Feature: F05 Modificar Usuario
     And click en crear usuario modificado
     Then aparece mensaje de que el email ya esta registrado en usuario modificado
 
-  Scenario: CP22 Modificar usuario con mail vacio
+  Scenario: CP23 Modificar usuario con mail vacio
     Given el usuario accede a la pagina de modificar usuario como administrador
     When accede al listado de usuario para modificar
     And click en modificar usuario "Juan Pérez"

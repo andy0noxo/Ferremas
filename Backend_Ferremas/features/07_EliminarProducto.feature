@@ -1,6 +1,6 @@
 Feature: F07 Eliminar Producto
 
-  Scenario: CP25 Eliminar producto correcto
+  Scenario: CP26 Eliminar producto correcto
     Given el usuario accede a la pagina de eliminar producto como administrador
     When accede al listado de productos para eliminar
     And selecciona eliminar producto "Taladro X200"
@@ -8,7 +8,7 @@ Feature: F07 Eliminar Producto
     Then el sistema elimina el registro de producto correctamente
     And lo refleja en el catálogo de productos
 
-  Scenario: CP26 Cancelar eliminar producto
+  Scenario: CP27 Cancelar eliminar producto
     Given el usuario accede a la pagina de eliminar producto como administrador
     When accede al listado de productos para eliminar
     And selecciona eliminar producto "Taladro X200"
