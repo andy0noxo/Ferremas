@@ -1,0 +1,163 @@
+{
+  "folders": [
+    {
+      "name": "Backend_Ferremas",
+      "path": "./Backend_Ferremas"
+    },
+    {
+      "name": "🎨 Frontend (Django + Python)", 
+      "path": "./ferremas_frontend"
+    }
+  ],
+  "settings": {
+    "editor.formatOnSave": true,
+    "editor.codeActionsOnSave": {
+      "source.fixAll.eslint": true
+    },
+    "eslint.workingDirectories": ["Backend_Ferremas"],
+    "files.associations": {
+      "*.env": "dotenv",
+      "*.feature": "gherkin"
+    },
+    "javascript.preferences.includePackageJsonAutoImports": "auto",
+    "python.defaultInterpreterPath": "./ferremas_frontend/venv/bin/python",
+    "python.terminal.activateEnvironment": true,
+    "files.exclude": {
+      "**/node_modules": true,
+      "**/__pycache__": true,
+      "**/venv": true,
+      "**/.env": true,
+      "**/db.sqlite3": true
+    },
+    "search.exclude": {
+      "**/node_modules": true,
+      "**/venv": true,
+      "**/_informes": true,
+      "**/_evidencias": true,
+      "**/staticfiles": true
+    }
+  },
+  "extensions": {
+    "recommendations": [
+      "ms-vscode.vscode-eslint",
+      "esbenp.prettier-vscode",
+      "ms-python.python",
+      "ms-python.flake8",
+      "alexkrechik.cucumberautocomplete",
+      "ms-vscode.vscode-json",
+      "formulahendry.auto-rename-tag",
+      "christian-kohler.path-intellisense",
+      "alexcvzz.vscode-sqlite",
+      "ms-vscode.vscode-node-debug2",
+      "ms-vscode.powershell"
+    ]
+  },
+  "tasks": {
+    "version": "2.0.0",
+    "tasks": [
+      {
+        "label": "Backend: Start Dev Server",
+        "type": "shell",
+        "command": "npm",
+        "args": ["run", "dev"],
+        "options": {
+          "cwd": "${workspaceFolder}/Backend_Ferremas"
+        },
+        "group": "build",
+        "presentation": {
+          "echo": true,
+          "reveal": "always",
+          "focus": false,
+          "panel": "new"
+        },
+        "problemMatcher": []
+      },
+      {
+        "label": "Frontend: Start Django Server", 
+        "type": "shell",
+        "command": "python",
+        "args": ["manage.py", "runserver"],
+        "options": {
+          "cwd": "${workspaceFolder}/ferremas_frontend"
+        },
+        "group": "build",
+        "presentation": {
+          "echo": true,
+          "reveal": "always", 
+          "focus": false,
+          "panel": "new"
+        },
+        "problemMatcher": []
+      },
+      {
+        "label": "Run BDD Tests",
+        "type": "shell",
+        "command": "powershell",
+        "args": ["-File", "run-tests.ps1"],
+        "options": {
+          "cwd": "${workspaceFolder}/Backend_Ferremas"
+        },
+        "group": "test",
+        "presentation": {
+          "echo": true,
+          "reveal": "always",
+          "focus": true,
+          "panel": "new"
+        }
+      },
+      {
+        "label": "Validate Environment",
+        "type": "shell", 
+        "command": "npm",
+        "args": ["run", "validate-env"],
+        "options": {
+          "cwd": "${workspaceFolder}/Backend_Ferremas"
+        },
+        "group": "test"
+      },
+      {
+        "label": "Setup Database",
+        "type": "shell",
+        "command": "npm", 
+        "args": ["run", "setup"],
+        "options": {
+          "cwd": "${workspaceFolder}/Backend_Ferremas"
+        },
+        "group": "build"
+      }
+    ]
+  },
+  "launch": {
+    "version": "0.2.0",
+    "configurations": [
+      {
+        "name": "Debug Backend",
+        "type": "node",
+        "request": "launch",
+        "program": "${workspaceFolder}/Backend_Ferremas/src/server.js",
+        "env": {
+          "NODE_ENV": "development"
+        },
+        "console": "integratedTerminal",
+        "restart": true,
+        "runtimeExecutable": "nodemon",
+        "skipFiles": [
+          "<node_internals>/**"
+        ]
+      },
+      {
+        "name": "Debug Single Feature",
+        "type": "node",
+        "request": "launch",
+        "program": "${workspaceFolder}/Backend_Ferremas/node_modules/@cucumber/cucumber/bin/cucumber-js",
+        "args": [
+          "--require", "./features/support",
+          "--require", "./features/step_definitions", 
+          "${file}"
+        ],
+        "cwd": "${workspaceFolder}/Backend_Ferremas",
+        "console": "integratedTerminal"
+      }
+    ]
+  }
+}

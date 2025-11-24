@@ -1,0 +1,42 @@
+# ============================================================================
+# FERREMAS FRONTEND - PYTHON DEPENDENCIES
+# ============================================================================
+
+# Core Django Framework
+Django>=4.2,<5.0
+
+# HTTP Client for API communication
+requests>=2.31.0,<3.0
+
+# Environment variables management
+python-dotenv>=1.0.0,<2.0
+
+# Database drivers
+mysqlclient>=2.2.0,<3.0          # MySQL/MariaDB (production)
+# psycopg2-binary>=2.9.0,<3.0    # PostgreSQL alternative
+
+# Image processing
+Pillow>=10.0.0,<11.0
+
+# Development and Testing (optional)
+# django-debug-toolbar>=4.2.0,<5.0
+# django-extensions>=3.2.0,<4.0
+
+# Form enhancements (optional)
+# django-crispy-forms>=2.0,<3.0
+# django-widget-tweaks>=1.4.12,<2.0
+
+# Authentication enhancements (optional)
+# django-allauth>=0.57.0,<0.58.0
+
+# Cache backends (optional)
+# redis>=5.0.0,<6.0
+# django-redis>=5.4.0,<6.0
+
+# Production server (optional)
+# gunicorn>=21.2.0,<22.0
+# whitenoise>=6.6.0,<7.0
+
+# Monitoring and logging (optional)
+# sentry-sdk[django]>=1.40.0,<2.0
+    

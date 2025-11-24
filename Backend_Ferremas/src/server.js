@@ -6,7 +6,7 @@ const db = require('./models');
 const serverConfig = require('./config/server.config');
 const errorHandler = require('./middlewares/errorHandler');
 const logger = require('./middlewares/logger');
-const bodyParser = require('body-parser');
+// bodyParser ya no es necesario - Express lo incluye nativamente
 
 // Inicializar aplicación Express
 const app = express();
@@ -39,13 +39,9 @@ app.use(cors({
   credentials: serverConfig.cors.credentials
 }));
 
-// Parseo de cuerpos HTTP
+// Parseo de cuerpos HTTP (Express incluye bodyParser)
 app.use(express.json({ limit: '10mb' }));
-app.use(express.urlencoded({ extended: true }));
-
-// Middlewares generales
-app.use(bodyParser.json());
-app.use(bodyParser.urlencoded({ extended: true }));
+app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
 // ======================
 // Configuración de Rutas

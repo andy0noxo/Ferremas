@@ -3,21 +3,21 @@ const { By, until } = require('selenium-webdriver');
 // Función de login optimizada para administrador
 async function performLogin(driver, baseUrl) {
   await driver.get(baseUrl + '/login/');
-  await driver.sleep(400); // Reducido de 1000ms
+  await driver.sleep(200); // Ultra optimizado
   
-  // Timeouts optimizados
-  await driver.wait(until.elementLocated(By.name('email')), 3000);
+  // Timeouts acelerados
+  await driver.wait(until.elementLocated(By.name('email')), 2000);
   
   const userEl = await driver.findElement(By.name('email'));
   await userEl.clear();
   await userEl.sendKeys('an.salcedo@duocuc.cl');
   
-  await driver.wait(until.elementLocated(By.name('password')), 2000);
+  await driver.wait(until.elementLocated(By.name('password')), 1500);
   const passEl = await driver.findElement(By.name('password'));
   await passEl.clear();
   await passEl.sendKeys('Admin.123456789');
   
-  await driver.wait(until.elementLocated(By.css('button[type="submit"]')), 2000);
+  await driver.wait(until.elementLocated(By.css('button[type="submit"]')), 1500);
   const btn = await driver.findElement(By.css('button[type="submit"]'));
   await btn.click();
   
@@ -43,26 +43,26 @@ async function performLogin(driver, baseUrl) {
 // Función de login optimizada para bodeguero
 async function performBodegueroLogin(driver, baseUrl) {
   await driver.get(baseUrl + '/login/');
-  await driver.sleep(400); // Reducido de 1000ms
+  await driver.sleep(200); // Ultra optimizado
   
-  // Timeouts optimizados
-  await driver.wait(until.elementLocated(By.name('email')), 3000);
+  // Timeouts acelerados
+  await driver.wait(until.elementLocated(By.name('email')), 2000);
   
   const userEl = await driver.findElement(By.name('email'));
   await userEl.clear();
   await userEl.sendKeys('bodeguero@bodeguero.com');
   
-  await driver.wait(until.elementLocated(By.name('password')), 2000);
+  await driver.wait(until.elementLocated(By.name('password')), 1500);
   const passEl = await driver.findElement(By.name('password'));
   await passEl.clear();
   await passEl.sendKeys('Bodeguero.1234');
   
-  await driver.wait(until.elementLocated(By.css('button[type="submit"]')), 2000);
+  await driver.wait(until.elementLocated(By.css('button[type="submit"]')), 1500);
   const btn = await driver.findElement(By.css('button[type="submit"]'));
   await btn.click();
   
-  // Espera optimizada después del login
-  await driver.sleep(800); // Reducido de 2000ms
+  // Espera ultra optimizada después del login
+  await driver.sleep(300); // Optimizado a 300ms
   
   // Verificar que el login fue exitoso
   try {
@@ -83,26 +83,26 @@ async function performBodegueroLogin(driver, baseUrl) {
 // Función de login optimizada para cliente
 async function performClienteLogin(driver, baseUrl) {
   await driver.get(baseUrl + '/login/');
-  await driver.sleep(400); // Reducido de 1000ms
+  await driver.sleep(200); // Ultra optimizado
   
-  // Timeouts optimizados
-  await driver.wait(until.elementLocated(By.name('email')), 3000);
+  // Timeouts acelerados
+  await driver.wait(until.elementLocated(By.name('email')), 2000);
   
   const userEl = await driver.findElement(By.name('email'));
   await userEl.clear();
   await userEl.sendKeys('cliente@cliente.com');
   
-  await driver.wait(until.elementLocated(By.name('password')), 2000);
+  await driver.wait(until.elementLocated(By.name('password')), 1500);
   const passEl = await driver.findElement(By.name('password'));
   await passEl.clear();
   await passEl.sendKeys('Cliente.1234');
   
-  await driver.wait(until.elementLocated(By.css('button[type="submit"]')), 2000);
+  await driver.wait(until.elementLocated(By.css('button[type="submit"]')), 1500);
   const btn = await driver.findElement(By.css('button[type="submit"]'));
   await btn.click();
   
-  // Espera optimizada después del login
-  await driver.sleep(800); // Reducido de 2000ms
+  // Espera ultra optimizada después del login
+  await driver.sleep(300); // Optimizado a 300ms
   
   // Verificar que el login fue exitoso
   try {

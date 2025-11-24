@@ -1,0 +1,62 @@
+{
+  "development": {
+    "username": "root",
+    "password": "Informatica.25",
+    "database": "ferremas",
+    "host": "localhost",
+    "port": 3306,
+    "dialect": "mysql",
+    "logging": "console.log",
+    "pool": {
+      "max": 5,
+      "min": 0,
+      "acquire": 30000,
+      "idle": 10000
+    },
+    "define": {
+      "timestamps": false,
+      "freezeTableName": true,
+      "underscored": true
+    }
+  },
+  "test": {
+    "username": "root",
+    "password": "Informatica.25",
+    "database": "ferremas_test",
+    "host": "localhost",
+    "port": 3306,
+    "dialect": "mysql",
+    "logging": false,
+    "pool": {
+      "max": 5,
+      "min": 0,
+      "acquire": 30000,
+      "idle": 10000
+    },
+    "define": {
+      "timestamps": false,
+      "freezeTableName": true,
+      "underscored": true
+    }
+  },
+  "production": {
+    "username": "root",
+    "password": null,
+    "database": "ferremas_production",
+    "host": "localhost",
+    "port": 3306,
+    "dialect": "mysql",
+    "logging": false,
+    "pool": {
+      "max": 10,
+      "min": 0,
+      "acquire": 60000,
+      "idle": 10000
+    },
+    "define": {
+      "timestamps": false,
+      "freezeTableName": true,
+      "underscored": true
+    }
+  }
+}

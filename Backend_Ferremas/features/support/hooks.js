@@ -7,7 +7,36 @@ const http = require('http');
 // NOTE: do NOT require('chromedriver') here. Selenium Manager (bundled in selenium-webdriver >=4)
 // will locate and download the matching ChromeDriver for the installed Chrome browser.
 
-setDefaultTimeout(30 * 1000); // Reducido de 60s a 30s
+// Cargar configuración de pruebas si existe
+const envTestPath = path.join(__dirname, '..', '..', '.env.test');
+if (fs.existsSync(envTestPath)) {
+	const envContent = fs.readFileSync(envTestPath, 'utf8');
+	const envVars = {};
+	
+	envContent.split('\n').forEach(line => {
+		const trimmed = line.trim();
+		if (trimmed && !trimmed.startsWith('#')) {
+			const [key, ...valueParts] = trimmed.split('=');
+			if (key && valueParts.length > 0) {
+				envVars[key] = valueParts.join('=');
+			}
+		}
+	});
+	
+	// Aplicar variables de entorno si no están ya definidas
+	Object.entries(envVars).forEach(([key, value]) => {
+		if (!process.env[key]) {
+			process.env[key] = value;
+		}
+	});
+	
+	console.log('🔧 Configuración de pruebas cargada desde .env.test');
+}
+
+// Configurar timeout basado en configuración (por defecto 20s, configurable)
+const testTimeout = parseInt(process.env.TEST_TIMEOUT) || 20000;
+setDefaultTimeout(testTimeout);
+console.log(`⏱️ Timeout de pruebas configurado a: ${testTimeout}ms`);
 
 // Variables globales para el sistema de evidencias
 let stepCounter = 0;
@@ -33,7 +62,7 @@ async function saveScreenshot(driver, featureName, scenarioName) {
 // Función mejorada para captura automática de evidencias
 async function captureStepEvidence(driver, featureName, scenarioName, stepName, stepNumber) {
 	try {
-		const dir = path.join(__dirname, '..', '_evidencias');
+		const dir = path.join(__dirname, '..', '_debug');
 		if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
 		
 		const now = new Date();
@@ -44,21 +73,16 @@ async function captureStepEvidence(driver, featureName, scenarioName, stepName, 
 		const cleanScenarioName = scenarioName.replace(/[^a-zA-Z0-9_-]/g, '_');
 		const cleanStepName = stepName.replace(/[^a-zA-Z0-9_-]/g, '_');
 		
-		// Capturar screenshot
+		// Capturar screenshot directamente en _debug
 		const img = await driver.takeScreenshot();
 		const screenshotFileName = `${cleanFeatureName}_${cleanScenarioName}_Step${stepNumber}_${cleanStepName}_${dateStr}.png`;
 		fs.writeFileSync(path.join(dir, screenshotFileName), img, 'base64');
-		
-		// Capturar código fuente de la página
-		const pageSource = await driver.getPageSource();
-		const pageSourceFileName = `${cleanFeatureName}_${cleanScenarioName}_Step${stepNumber}_${cleanStepName}_${dateStr}.html`;
-		fs.writeFileSync(path.join(dir, pageSourceFileName), pageSource, 'utf8');
 		
 		console.log(`📸 Evidencias capturadas para paso ${stepNumber}: ${stepName}`);
 		
 		return {
 			screenshot: screenshotFileName,
-			pageSource: pageSourceFileName
+			pageSource: null
 		};
 	} catch (e) {
 		console.error('Error al capturar evidencias:', e.message);
@@ -82,9 +106,19 @@ Before(async function (scenario) {
 		startTimestamp: new Date().toISOString()
 	};
 	
-	// Crear opciones de Chrome para depuración visual (sin headless) y mejorar estabilidad
+	// Crear opciones de Chrome optimizadas para velocidad
 	const options = new chrome.Options();
-	// Argumentos optimizados para mejor rendimiento y estabilidad
+	
+	// Configurar headless basado en variable de entorno (por defecto headless para velocidad)
+	const isHeadless = process.env.HEADLESS !== 'false';
+	if (isHeadless) {
+		options.addArguments('--headless=new'); // Nuevo headless más rápido
+		console.log('🏃‍♂️ Ejecutando en modo headless para máxima velocidad');
+	} else {
+		console.log('👀 Ejecutando en modo visual para depuración');
+	}
+	
+	// Argumentos optimizados para máximo rendimiento
 	options.addArguments(
 		'--no-sandbox',
 		'--disable-dev-shm-usage', 
@@ -95,13 +129,36 @@ Before(async function (scenario) {
 		'--disable-backgrounding-occluded-windows',
 		'--disable-renderer-backgrounding',
 		'--disable-web-security',
-		'--disable-features=TranslateUI',
+		'--disable-features=TranslateUI,VizDisplayCompositor',
 		'--disable-ipc-flooding-protection',
-		'--window-size=1920,1080',
-		'--force-device-scale-factor=1',
+		'--disable-background-networking',
+		'--disable-default-apps',
+		'--disable-sync',
+		'--disable-translate',
+		'--hide-scrollbars',
+		'--metrics-recording-only',
+		'--mute-audio',
 		'--no-first-run',
-		'--disable-default-apps'
+		'--safebrowsing-disable-auto-update',
+		'--ignore-certificate-errors',
+		'--ignore-ssl-errors',
+		'--ignore-certificate-errors-spki-list',
+		'--ignore-certificate-errors',
+		'--disable-client-side-phishing-detection',
+		'--disable-datasaver-prompt',
+		'--disable-device-discovery-notifications',
+		'--disable-notifications',
+		'--disable-popup-blocking',
+		'--disable-prompt-on-repost',
+		'--disable-hang-monitor',
+		'--disable-logging',
+		'--disable-permissions-api',
+		'--window-size=1366,768', // Tamaño más pequeño para velocidad
+		'--force-device-scale-factor=1'
 	);
+	
+	// Configuración adicional para performance
+	options.setPageLoadStrategy('normal'); // eager para más velocidad, normal para estabilidad
 	if (process.env.CHROME_BIN) {
 		options.setChromeBinaryPath(process.env.CHROME_BIN);
 	}
@@ -111,8 +168,12 @@ Before(async function (scenario) {
 		.setChromeOptions(options)
 		.build();
 
-	// Timeout implícito optimizado para mejor rendimiento
-	await this.driver.manage().setTimeouts({ implicit: 3000 }); // Reducido de 10s a 3s
+	// Timeout implícito optimizado para velocidad
+	await this.driver.manage().setTimeouts({ 
+		implicit: 2000, // Reducido a 2s para mayor velocidad
+		pageLoad: 15000, // Timeout de carga de página
+		script: 10000 // Timeout para scripts asíncronos
+	});
 
 	this.baseUrl = 'http://127.0.0.1:8000';
 	
@@ -136,47 +197,49 @@ Before(async function (scenario) {
 });
 
 BeforeAll(function () {
-	// Limpiar evidencias anteriores
-	const evidenceDir = path.join(__dirname, '..', '_evidencias');
+	// NO LIMPIAR EVIDENCIAS - Conservar screenshots de features anteriores
 	const debugDir = path.join(__dirname, '..', '_debug');
 	
-	[evidenceDir, debugDir].forEach(dir => {
-		if (fs.existsSync(dir)) {
-			fs.readdirSync(dir).forEach(file => {
-				if (file.endsWith('.png') || file.endsWith('.html')) {
-					fs.unlinkSync(path.join(dir, file));
-				}
-			});
-		}
-	});
+	// Solo asegurar que existe el directorio
+	if (!fs.existsSync(debugDir)) {
+		fs.mkdirSync(debugDir, { recursive: true });
+	}
 	
-	console.log('🧹 Evidencias anteriores limpiadas');
-	console.log('📁 Las nuevas evidencias se guardarán en: _evidencias/');
+	console.log('📁 Manteniendo evidencias anteriores para múltiples features');
+	console.log('📁 Las nuevas evidencias se guardarán en: _debug/');
 });
 
-// Hook que se ejecuta después de cada paso
+// Hook que se ejecuta después de cada paso (optimizado)
 AfterStep(async function (step) {
 	if (this.driver && this.currentScenarioInfo) {
 		stepCounter++;
 		
-		// Esperar un momento para que la página se estabilice
-		await this.driver.sleep(1000);
+		// Espera mínima solo si es necesario
+		const needsWait = process.env.STEP_WAIT !== 'false';
+		if (needsWait) {
+			await this.driver.sleep(200); // Reducido drásticamente de 1000ms a 200ms
+		}
 		
 		const stepName = step.pickleStep.text;
 		const stepNumber = stepCounter.toString().padStart(2, '0');
 		
 		console.log(`📝 Paso ${stepNumber}: ${stepName}`);
 		
-		// Capturar evidencias del paso
-		const evidence = await captureStepEvidence(
-			this.driver, 
-			this.currentScenarioInfo.featureName, 
-			this.currentScenarioInfo.scenarioName, 
-			stepName, 
-			stepNumber
-		);
+		// Capturar evidencias por defecto (cambiar a false solo si hay problemas de performance)
+		const captureEvidence = process.env.CAPTURE_EVIDENCE !== 'false';
+		let evidence = { screenshot: null, pageSource: null };
 		
-		// Guardar evidencia en el array
+		if (captureEvidence) {
+			evidence = await captureStepEvidence(
+				this.driver, 
+				this.currentScenarioInfo.featureName, 
+				this.currentScenarioInfo.scenarioName, 
+				stepName, 
+				stepNumber
+			);
+		}
+		
+		// Guardar evidencia en el array (siempre para tracking, pero sin archivos si no está habilitado)
 		this.currentScenarioInfo.evidences.push({
 			stepNumber: stepNumber,
 			stepName: stepName,
@@ -201,10 +264,7 @@ After(async function (scenario) {
 				duration = ((endTime - this.currentScenarioInfo.startTime) / 1000).toFixed(2);
 			}
 			
-			// Espera mínima antes de tomar el screenshot final
-			await this.driver.sleep(200); // Reducido de 500ms a 200ms
-			
-			// Captura final del escenario (mantiene compatibilidad con función original)
+			// Captura final del escenario (mantiene compatibilidad con función original)  
 			const featureName = scenario.gherkinDocument.feature.name;
 			const scenarioName = scenario.pickle.name;
 			await saveScreenshot(this.driver, featureName, scenarioName);
@@ -217,7 +277,7 @@ After(async function (scenario) {
 				console.log(`⏱️  Duración: ${duration}s`);
 				console.log(`⏰ Timestamp fin: ${endTimestamp}`);
 				console.log(`📊 Total de pasos ejecutados: ${this.currentScenarioInfo.evidences.length}`);
-				console.log(`📁 Evidencias guardadas en: _evidencias/`);
+				console.log(`📁 Evidencias guardadas en: _debug/`);
 			}
 			
 		} catch (error) {
@@ -241,16 +301,16 @@ AfterAll(async function () {
 	
 	// Forzar limpieza de cualquier proceso residual
 	try {
-		// Esperar un momento para que todos los procesos terminen
-		await new Promise(resolve => setTimeout(resolve, 2000));
+		// Espera optimizada para terminación más rápida
+		await new Promise(resolve => setTimeout(resolve, 500)); // Reducido de 2s a 500ms
 		
 		console.log('✅ Ejecución completada - todos los recursos liberados');
 		
-		// Forzar terminación del proceso si es necesario
+		// Terminación más rápida del proceso
 		setTimeout(() => {
-			console.log('⚠️  Forzando terminación del proceso...');
+			console.log('⚠️  Finalizando proceso...');
 			process.exit(0);
-		}, 3000);
+		}, 1000); // Reducido de 3s a 1s
 		
 	} catch (error) {
 		console.error('Error en limpieza final:', error.message);
