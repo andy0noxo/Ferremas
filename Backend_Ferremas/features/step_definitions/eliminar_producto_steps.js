@@ -13,8 +13,13 @@ When('accede al listado de productos para eliminar', async function () {
 });
 
 When('confirma la eliminación de producto', async function () {
-  const btn = await this.driver.findElement(By.css('.btn-danger, button[onclick*="confirm"]'));
+  const btn = await this.driver.findElement(By.xpath('/html/body/main/table/tbody/tr[1]/td[7]/form/button'));
   await btn.click();
+  // Aceptar el confirm
+  await this.driver.sleep(200);
+  try {
+    await this.driver.switchTo().alert().accept();
+  } catch (e) {}
   await this.driver.sleep(500);
 });
 
@@ -57,9 +62,14 @@ When('accede a productos', async function () {
 
 When('selecciona eliminar producto {string}', async function (nombreProducto) {
   // Busca el botón de eliminar para el producto indicado
-  const btn = await this.driver.findElement(By.xpath(`//tr[td[contains(text(),"${nombreProducto}")]]//button[contains(@class,'eliminar')]`));
+  const btn = await this.driver.findElement(By.xpath(`//tr[td[contains(text(),"${nombreProducto}")]]//button[@type='submit'][contains(text(),'Eliminar')]`));
   await btn.click();
   await this.driver.sleep(200);
+  // Aceptar el alert de confirmación
+  try {
+    await this.driver.switchTo().alert().accept();
+  } catch (e) {}
+  await this.driver.sleep(500);
 });
 
 When('confirma la eliminación', async function () {

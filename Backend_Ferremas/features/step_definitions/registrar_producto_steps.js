@@ -8,7 +8,7 @@ Given('el usuario accede a la pagina de registro de producto como administrador'
 });
 
 When('accede al formulario de registro de producto', async function () {
-  await this.driver.get(this.baseUrl + '/productos/registrar/');
+  await this.driver.get(this.baseUrl + '/productos/crear/');
   await this.driver.sleep(200);
 });
 
@@ -31,12 +31,14 @@ When('ingreso precio de producto {string}', async function (precio) {
 });
 
 When('selecciono marca de producto {string}', async function (marca) {
-  const el = await this.driver.findElement(By.name('marca'));
+  const el = await this.driver.findElement(By.name('marca_id'));
+  // Seleccionar por texto visible en el select
   await el.sendKeys(marca);
 });
 
 When('selecciono categoria de producto {string}', async function (categoria) {
-  const el = await this.driver.findElement(By.name('categoria'));
+  const el = await this.driver.findElement(By.name('categoria_id'));
+  // Seleccionar por texto visible en el select
   await el.sendKeys(categoria);
 });
 

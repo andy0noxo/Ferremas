@@ -1,4 +1,4 @@
-Feature: F12 Búsqueda de productos
+Feature: F10 Búsqueda de productos
 
   Scenario: CP31 Búsqueda producto existente
     Given el usuario accede a la pagina como cliente

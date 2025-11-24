@@ -1,4 +1,4 @@
-Feature: F06 Carrito de compras
+Feature: F11 Carrito de compras
 
   Scenario: CP34 Agregar al carrito
     Given el usuario accede a la pagina como cliente

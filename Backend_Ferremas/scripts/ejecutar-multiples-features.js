@@ -184,13 +184,19 @@ class MultiFeatureExecutor {
                         }
                     }
                     
-                    // Buscar timestamp de fin en las líneas siguientes
+                    // Buscar timestamp de fin y stepCount en las líneas siguientes
                     for (let i = index + 1; i < Math.min(index + 5, lines.length); i++) {
                         if (lines[i].includes('⏰ Timestamp fin:')) {
                             const endTimestampMatch = lines[i].match(/⏰ Timestamp fin:\s*(.+)/);
                             if (endTimestampMatch) {
                                 endTime = endTimestampMatch[1].trim();
-                                break;
+                            }
+                        }
+                        // También buscar stepCount en las líneas siguientes
+                        if (lines[i].includes('📊 Total de pasos ejecutados:')) {
+                            const stepMatch = lines[i].match(/📊 Total de pasos ejecutados:\s*(\d+)/);
+                            if (stepMatch) {
+                                stepCount = parseInt(stepMatch[1]);
                             }
                         }
                     }
@@ -227,16 +233,25 @@ class MultiFeatureExecutor {
         return match ? match[1] : caseName.substring(0, 10);
     }
 
-    // Contar screenshots para un caso
+    // Contar screenshots para un caso (solo de la ejecución actual)
     countScreenshots(caseName) {
         const debugDir = path.join(__dirname, '..', 'features', '_debug');
         if (!fs.existsSync(debugDir)) return 0;
         
         const files = fs.readdirSync(debugDir);
         const caseId = this.extractCaseId(caseName);
-        return files.filter(file => 
-            file.includes(caseId) && (file.endsWith('.png') || file.endsWith('.jpg'))
-        ).length;
+        
+        // Filtrar solo archivos creados DESPUÉS del inicio de esta ejecución
+        return files.filter(file => {
+            if (!file.includes(caseId) || !(file.endsWith('.png') || file.endsWith('.jpg'))) {
+                return false;
+            }
+            
+            // Verificar fecha de modificación del archivo
+            const filePath = path.join(debugDir, file);
+            const stats = fs.statSync(filePath);
+            return stats.mtime >= this.totalStartTime;
+        }).length;
     }
 
     // Generar reporte consolidado
@@ -369,19 +384,20 @@ class MultiFeatureExecutor {
             return evidenceData;
         }
 
-        // Obtener IDs de las features ejecutadas en esta ejecución
-        const executedFeatureIds = this.featuresExecuted.map(f => {
-            const match = f.name.match(/(\d+)_/);
-            return match ? match[1] : null;
-        }).filter(id => id !== null);
-
         const files = fs.readdirSync(evidenceDir)
             .filter(file => file.endsWith('.png') || file.endsWith('.jpg'))
             .sort();
 
-        // Agrupar archivos por caso y paso para mostrar solo el más reciente de cada paso
-        const groupedByStep = {};
+        // FILTRAR SOLO POR TIMESTAMP: archivos creados durante esta ejecución
         files.forEach(file => {
+            const filePath = path.join(evidenceDir, file);
+            const stats = fs.statSync(filePath);
+            
+            // CRÍTICO: Solo incluir archivos creados DURANTE esta ejecución
+            if (stats.mtime < this.totalStartTime) {
+                return; // Saltar archivos antiguos
+            }
+            
             // Extraer información del nombre del archivo
             const featureMatch = file.match(/F(\d+)_/);
             const caseMatch = file.match(/(CP\d+[a-z]*)/i);
@@ -390,59 +406,31 @@ class MultiFeatureExecutor {
                 const caseId = caseMatch[1];
                 const featureId = featureMatch[1];
                 
-                // FILTRAR: Solo incluir evidencias de las features ejecutadas
-                if (!executedFeatureIds.includes(featureId)) {
-                    return; // Saltar este archivo si no pertenece a las features ejecutadas
-                }
-                
-                let stepKey = `${caseId}_resultado_final`; // Clave por defecto para screenshots finales
                 let stepDescription = 'Resultado Final del Caso';
                 
                 if (file.includes('Step')) {
                     const stepMatch = file.match(/Step(\d+)_([^_]+(?:_[^_]+)*)/);
                     if (stepMatch) {
                         const stepNum = stepMatch[1];
-                        stepKey = `${caseId}_step_${stepNum}`;
                         const stepDesc = stepMatch[2].replace(/_/g, ' ').replace(/\s+/g, ' ').trim();
                         stepDescription = `Paso ${stepNum}: ${stepDesc}`;
                     }
                 }
                 
-                const filePath = path.join(evidenceDir, file);
-                const stats = fs.statSync(filePath);
+                const featureName = this.getFeatureNameById(featureId);
                 
-                const fileInfo = {
-                    file: file,
-                    caseId: caseId,
-                    featureId: featureId,
-                    stepDescription: stepDescription,
-                    filePath: filePath,
-                    stats: stats,
-                    timestamp: stats.mtime
-                };
-                
-                // Solo mantener el archivo más reciente para cada paso
-                if (!groupedByStep[stepKey] || stats.mtime > groupedByStep[stepKey].timestamp) {
-                    groupedByStep[stepKey] = fileInfo;
-                }
+                evidenceData.push({
+                    'Feature': featureName,
+                    'Caso de Prueba': caseId,
+                    'Paso Detectado': stepDescription,
+                    'Nombre Archivo': file,
+                    'Tamaño Archivo': this.formatFileSize(stats.size),
+                    'Fecha y Hora': stats.mtime.toLocaleString(),
+                    'Ruta del Archivo': `features/_debug/${file}`,
+                    'Estado Archivo': '✅ Disponible',
+                    'Screenshot': filePath.replace(/\\/g, '/')
+                });
             }
-        });
-
-        // Crear registros para los archivos más recientes de cada paso
-        Object.values(groupedByStep).forEach(fileInfo => {
-            const featureName = this.getFeatureNameById(fileInfo.featureId);
-            
-            evidenceData.push({
-                'Feature': featureName,
-                'Caso de Prueba': fileInfo.caseId,
-                'Paso Detectado': fileInfo.stepDescription,
-                'Nombre Archivo': fileInfo.file,
-                'Tamaño Archivo': this.formatFileSize(fileInfo.stats.size),
-                'Fecha y Hora': fileInfo.stats.mtime.toLocaleString(),
-                'Ruta del Archivo': `features/_debug/${fileInfo.file}`,
-                'Estado Archivo': '✅ Disponible',
-                'Screenshot': fileInfo.filePath.replace(/\\/g, '/')
-            });
         });
 
         return evidenceData;
@@ -487,7 +475,16 @@ class MultiFeatureExecutor {
             '01': '01_RegistrarUsuario',
             '02': '02_Login',
             '03': '03_RegistrarProducto',
-            // Añadir más según sea necesario
+            '04': '04_ModificarProducto',
+            '05': '05_ModificarUsuario',
+            '06': '06_EliminarUsuario',
+            '07': '07_EliminarProducto',
+            '08': '08_ListarUsuario',
+            '09': '09_ListarProducto',
+            '10': '10_BusquedaProducto',
+            '11': '11_CarritoCompras',
+            '12': '12_ModificarStock',
+            '13': '13_Reportes'
         };
         return mapping[id] || `Feature_${id}`;
     }

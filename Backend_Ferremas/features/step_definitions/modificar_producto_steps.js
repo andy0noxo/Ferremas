@@ -9,7 +9,7 @@ Given('el usuario accede a la pagina de modificar producto como administrador', 
 });
 
 When('accede al formulario de modificar producto', async function () {
-  await this.driver.get(this.baseUrl + '/productos/modificar/');
+  await this.driver.get(this.baseUrl + '/productos/1/editar/');
   await this.driver.sleep(200);
 });
 
@@ -32,12 +32,12 @@ When('ingreso precio de producto modificado {string}', async function (precio) {
 });
 
 When('selecciono marca de producto modificado {string}', async function (marca) {
-  const el = await this.driver.findElement(By.name('marca'));
+  const el = await this.driver.findElement(By.name('marca_id'));
   await el.sendKeys(marca);
 });
 
 When('selecciono categoria de producto modificado {string}', async function (categoria) {
-  const el = await this.driver.findElement(By.name('categoria'));
+  const el = await this.driver.findElement(By.name('categoria_id'));
   await el.sendKeys(categoria);
 });
 

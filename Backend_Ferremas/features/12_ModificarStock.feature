@@ -1,4 +1,4 @@
-Feature: F13 Modificar Stock
+Feature: F12 Modificar Stock
 
   Scenario: CP38 Bodeguero actualiza stock correcto
     Given el usuario accede a la pagina como bodeguero

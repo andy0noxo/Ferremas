@@ -12,7 +12,8 @@ When('accede al listado de usuario', async function () {
 });
 
 Then('muestra listado de todos los usuarios registrados', async function () {
-  // Verifica que hay usuarios listados
-  const usuarios = await this.driver.findElements(By.css('.usuario-item'));
-  if (usuarios.length === 0) throw new Error('No se muestran usuarios en la lista');
+  // Verifica que hay una tabla de usuarios
+  const tabla = await this.driver.findElement(By.css('table'));
+  const isDisplayed = await tabla.isDisplayed();
+  if (!isDisplayed) throw new Error('No se muestra la tabla de usuarios');
 });

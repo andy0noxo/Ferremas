@@ -18,7 +18,7 @@ def handler404(request, exception):
 
 urlpatterns = [
     # path('admin/', admin.site.urls),  # Disabled - no admin interface
-    # path('pedidos/', include(('pedidos.urls', 'pedidos'), namespace='pedidos')),  # Handled by core
+    path('pedidos/', include('pedidos.urls')),  # Pedidos app
     path('', include(('core.urls', 'core'), namespace='core')),  # All routes through core app
 ]
 

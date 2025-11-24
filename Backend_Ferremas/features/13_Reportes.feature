@@ -1,4 +1,4 @@
-Feature: F11 Reportes
+Feature: F13 Reportes
 
   Scenario: CP41 Generar informe ventas mensual
     Given el usuario accede a la pagina como administrador

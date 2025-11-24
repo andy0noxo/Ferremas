@@ -1,4 +1,4 @@
-Feature: F04 Listar Producto
+Feature: F09 Listar Producto
 
   Scenario: CP28 Listar producto completo
     Given el usuario accede a la pagina como administrador
