@@ -1,56 +1,177 @@
 {% extends 'base.html' %}
-{% block title %}{{ accion }} Producto{% endblock %}
-{% block nav %}
-<ul>
-    <li><a href="{% url 'core:dashboard' %}">Inicio</a></li>
-    <li><a href="{% url 'core:productos_list' %}">Productos</a></li>
-</ul>
+{% block title %}{{ accion }} Producto<script>
+    function toggleNewField(field) {
+        const select = document.getElementById(field + '_id');
+        const input = document.getElementById('nueva_' + field);
+        if (select.value === 'new') {
+            input.style.display = 'block';
+            input.required = true;
+            select.name = ''; // Prevent sending 'new' as ID
+        } else {
+            input.style.display = 'none';
+            input.required = false;
+            input.value = '';
+            select.name = field + '_id';
+        }
+    }
+    
+    // Initialize state on load
+    document.addEventListener('DOMContentLoaded', () => {
+        const marcaSelect = document.getElementById('marca_id');
+        if(marcaSelect && marcaSelect.value === 'new') toggleNewField('marca');
+        
+        const catSelect = document.getElementById('categoria_id');
+        if(catSelect && catSelect.value === 'new') toggleNewField('categoria');
+    });
+</script>
 {% endblock %}
+
 {% block content %}
-<h2>{{ accion }} Producto</h2>
-{% if form.errors %}
-    <div class="errorlist">
-        <ul>
-        {% for field in form %}
-            {% for error in field.errors %}
-                <li>{{ field.label }}: {{ error }}</li>
+<div class="form-container">
+    <h2>{{ accion }} Producto</h2>
+    {% if form.errors %}
+        <div class="errorlist message error">
+            <ul style="margin:0; padding-left:20px;">
+            {% for field in form %}
+                {% for error in field.errors %}
+                    <li>{{ field.label }}: {{ error }}</li>
+                {% endfor %}
             {% endfor %}
-        {% endfor %}
-        {% for error in form.non_field_errors %}
-            <li>{{ error }}</li>
-        {% endfor %}
-        </ul>
+            {% for error in form.non_field_errors %}
+                <li>{{ error }}</li>
+            {% endfor %}
+            </ul>
+        </div>
+    {% endif %}
+    
+    <div class="card form-card">
+        <form method="post" class="styled-form">
+            {% csrf_token %}
+            
+            <div class="form-group">
+                <label for="nombre">Nombre del Producto:</label>
+                <input type="text" id="nombre" name="nombre" class="form-control" value="{{ form.nombre.value|default:'' }}" required placeholder="Ej. Taladro Percutor">
+            </div>
+
+            <div class="form-group">
+                <label for="descripcion">Descripción:</label>
+                <textarea id="descripcion" name="descripcion" class="form-control" rows="3" placeholder="Descripción detallada del producto">{{ form.descripcion.value|default:'' }}</textarea>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group half" style="flex: 1;">
+                    <label for="precio">Precio (CLP):</label>
+                    <input type="number" id="precio" name="precio" class="form-control" value="{{ form.precio.value|default:'' }}" min="1" required placeholder="0">
+                </div>
+
+                <div class="form-group half" style="flex: 1;">
+                    <label for="stock">Stock Total Inicial/Actual:</label>
+                    <input type="number" id="stock" name="stock" class="form-control" value="{{ form.stock.value|default:'0' }}" min="0" required placeholder="0">
+                </div>
+
+                <div class="form-group half" style="flex: 1;">
+                    <label for="imagen_url">URL de Imagen (Opcional):</label>
+                    <input type="url" id="imagen_url" name="imagen_url" class="form-control" value="{{ form.imagen_url.value|default:'' }}" placeholder="https://ejemplo.com/imagen.jpg">
+                </div>
+            </div>
+
+                            <div class="form-row">
+                    <div class="form-group half">
+                        <label for="marca_id">Marca:</label>
+                        <select id="marca_id" name="marca_id" class="form-control" onchange="toggleNewField('marca')">
+                            <option value="">Seleccione una marca</option>
+                            {% for marca in marcas %}
+                                <option value="{{ marca.id }}" {% if form.marca_id.value|stringformat:'s' == marca.id|stringformat:'s' %}selected{% endif %}>{{ marca.nombre }}</option>
+                            {% endfor %}
+                            <option value="new" {% if form.nueva_marca.value %}selected{% endif %}>+ Crear nueva marca</option>
+                        </select>
+                        <input type="text" id="nueva_marca" name="nueva_marca" class="form-control" style="margin-top:0.5rem; display:{% if form.nueva_marca.value %}block{% else %}none{% endif %};" placeholder="Nombre de nueva marca" value="{{ form.nueva_marca.value|default:'' }}">
+                    </div>
+
+                    <div class="form-group half">
+                        <label for="categoria_id">Categoría:</label>
+                        <select id="categoria_id" name="categoria_id" class="form-control" onchange="toggleNewField('categoria')">
+                            <option value="">Seleccione una categoría</option>
+                            {% for categoria in categorias %}
+                                <option value="{{ categoria.id }}" {% if form.categoria_id.value|stringformat:'s' == categoria.id|stringformat:'s' %}selected{% endif %}>{{ categoria.nombre }}</option>
+                            {% endfor %}
+                            <option value="new" {% if form.nueva_categoria.value %}selected{% endif %}>+ Crear nueva categoría</option>
+                        </select>
+                        <input type="text" id="nueva_categoria" name="nueva_categoria" class="form-control" style="margin-top:0.5rem; display:{% if form.nueva_categoria.value %}block{% else %}none{% endif %};" placeholder="Nombre de nueva categoría" value="{{ form.nueva_categoria.value|default:'' }}">
+                    </div>
+                </div>
+
+            <div class="form-actions">
+                <button type="submit" class="btn-primary">Guardar Producto</button>
+                <a href="{% url 'core:productos_list' %}" class="btn-secondary" style="text-decoration:none;">Cancelar</a>
+            </div>
+        </form>
     </div>
-{% endif %}
-<form method="post">
-    {% csrf_token %}
-    <label for="nombre">Nombre:</label>
-    <input type="text" id="nombre" name="nombre" value="{{ form.nombre.value|default:'' }}" required><br>
-    <label for="descripcion">Descripción:</label>
-    <input type="text" id="descripcion" name="descripcion" value="{{ form.descripcion.value|default:'' }}"><br>
-    <label for="precio">Precio:</label>
-    <input type="number" id="precio" name="precio" value="{{ form.precio.value|default:'' }}" min="1" required><br>
-    <label for="marca_id">Marca:</label>
-    <select id="marca_id" name="marca_id" required>
-        <option value="">Seleccione</option>
-        {% for marca in marcas %}
-            <option value="{{ marca.id }}" {% if form.marca_id.value|stringformat:'s' == marca.id|stringformat:'s' %}selected{% endif %}>{{ marca.nombre }}</option>
-        {% endfor %}
-    </select><br>
-    <label for="categoria_id">Categoría:</label>
-    <select id="categoria_id" name="categoria_id" required>
-        <option value="">Seleccione</option>
-        {% for categoria in categorias %}
-            <option value="{{ categoria.id }}" {% if form.categoria_id.value|stringformat:'s' == categoria.id|stringformat:'s' %}selected{% endif %}>{{ categoria.nombre }}</option>
-        {% endfor %}
-    </select><br>
-    <button type="submit">{{ accion }}</button>
-</form>
-{% if accion == 'Editar' and producto %}
-<form method="post" action="{% url 'core:producto_eliminar' producto.id %}" style="margin-top:1em;">
-    {% csrf_token %}
-    <button type="submit" onclick="return confirm('¿Seguro que desea eliminar este producto?');">Eliminar</button>
-</form>
-{% endif %}
-<a href="{% url 'core:productos_list' %}">Volver al listado</a>
+
+    {% if accion == 'Editar' and producto %}
+    <div class="danger-zone card mt-4">
+        <h3>Zona de Peligro</h3>
+        <p>Una vez que eliminas un producto, no hay vuelta atrás. Por favor, esté seguro.</p>
+        <form method="post" action="{% url 'core:producto_eliminar' producto.id %}">
+            {% csrf_token %}
+            <button type="submit" class="btn-danger" onclick="return confirm('¿Seguro que desea eliminar este producto? Todos sus registros de stock también se perderán.');">Eliminar Producto</button>
+        </form>
+    </div>
+    {% endif %}
+</div>
+
+<style>
+    .form-container { max-width: 800px; margin: 2rem auto; }
+    .form-container h2 { color: #1e293b; margin-bottom: 1.5rem; }
+    
+    .card { background: white; padding: 2rem; border-radius: 8px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); }
+    .mt-4 { margin-top: 1.5rem; }
+    
+    .styled-form { display: flex; flex-direction: column; gap: 1.25rem; }
+    .form-row { display: flex; gap: 1rem; flex-wrap: wrap; }
+    .form-group { display: flex; flex-direction: column; gap: 0.5rem; flex: 1; }
+    .form-group.half { min-width: 250px; }
+    
+    .form-group label { font-weight: 600; color: #475569; font-size: 0.95rem; }
+    .form-control { padding: 0.75rem; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 1rem; font-family: inherit; transition: border-color 0.2s; }
+    .form-control:focus { outline: none; border-color: #3b82f6; box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1); }
+    
+    .form-actions { display: flex; gap: 1rem; margin-top: 1rem; }
+    .btn-primary { background: #2563eb; color: white; padding: 0.75rem 1.5rem; border: none; border-radius: 6px; font-weight: 600; cursor: pointer; transition: background 0.2s; }
+    .btn-primary:hover { background: #1d4ed8; }
+    
+    .btn-secondary { background: #f1f5f9; color: #475569; padding: 0.75rem 1.5rem; border: 1px solid #cbd5e1; border-radius: 6px; font-weight: 600; cursor: pointer; transition: all 0.2s; text-align: center; }
+    .btn-secondary:hover { background: #e2e8f0; color: #1e293b; }
+    
+    .danger-zone { border: 1px solid #fecaca; background-color: #fef2f2; }
+    .danger-zone h3 { color: #dc2626; margin-top: 0; margin-bottom: 0.5rem; }
+    .danger-zone p { color: #991b1b; margin-top: 0; margin-bottom: 1rem; }
+    .btn-danger { background: #dc2626; color: white; padding: 0.75rem 1.5rem; border: none; border-radius: 6px; font-weight: 600; cursor: pointer; transition: background 0.2s; }
+    .btn-danger:hover { background: #b91c1c; }
+</style>
+<script>
+    function toggleNewField(field) {
+        const select = document.getElementById(field + '_id');
+        const input = document.getElementById('nueva_' + field);
+        if (select.value === 'new') {
+            input.style.display = 'block';
+            input.required = true;
+            select.name = ''; // Prevent sending 'new' as ID
+        } else {
+            input.style.display = 'none';
+            input.required = false;
+            input.value = '';
+            select.name = field + '_id';
+        }
+    }
+    
+    // Initialize state on load
+    document.addEventListener('DOMContentLoaded', () => {
+        const marcaSelect = document.getElementById('marca_id');
+        if(marcaSelect && marcaSelect.value === 'new') toggleNewField('marca');
+        
+        const catSelect = document.getElementById('categoria_id');
+        if(catSelect && catSelect.value === 'new') toggleNewField('categoria');
+    });
+</script>
 {% endblock %}

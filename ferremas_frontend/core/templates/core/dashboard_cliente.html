@@ -1,12 +1,36 @@
 {% extends 'base.html' %}
 {% block title %}Panel Cliente{% endblock %}
-{% block nav %}
-<ul>    <li><a href="{% url 'pedidos:pedidos_list' %}">Mis Pedidos</a></li>
-    <li><a href="{% url 'core:productos_list' %}">Catálogo de Productos</a></li>
-</ul>
-{% endblock %}
+
 {% block content %}
-<h2>Panel de Cliente</h2>
-<p>Bienvenido, {{ user.nombre }}.</p>
-<p>Aquí puedes ver tus pedidos, tu carrito y explorar productos.</p>
+<div class="dashboard-container">
+    <h2>Panel de Cliente</h2>
+    <p>Bienvenido, <strong>{{ user.nombre }}</strong>.</p>
+    <p>Selecciona una opción para gestionar tus compras.</p>
+
+    <div class="dashboard-grid">
+        <a href="{% url 'core:productos_list' %}" class="dashboard-card">
+            <h3>📦 Catálogo de Productos</h3>
+            <p>Explorar y buscar materiales y herramientas.</p>
+        </a>
+
+        <a href="{% url 'pedidos:pedido_crear' %}" class="dashboard-card">
+            <h3>🛒 Mi Carrito</h3>
+            <p>Continuar con tu pedido actual y proceder al pago.</p>
+        </a>
+
+        <a href="{% url 'pedidos:pedidos_list' %}" class="dashboard-card">
+            <h3>📋 Mis Pedidos</h3>
+            <p>Revisar el historial y estado de tus compras anteriores.</p>
+        </a>
+    </div>
+</div>
+
+<style>
+    .dashboard-container { padding: 2rem; background-color: white; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); margin-top: 1rem; }
+    .dashboard-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1.5rem; margin-top: 2rem; }
+    .dashboard-card { display: block; padding: 1.5rem; background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; text-decoration: none; color: #1e293b; transition: all 0.2s ease; }
+    .dashboard-card:hover { transform: translateY(-3px); box-shadow: 0 4px 6px rgba(0,0,0,0.1); border-color: #3b82f6; background-color: #eff6ff; }
+    .dashboard-card h3 { margin-top: 0; margin-bottom: 0.5rem; color: #0f172a; font-size: 1.25rem; }
+    .dashboard-card p { margin: 0; color: #64748b; font-size: 0.95rem; line-height: 1.4; }
+</style>
 {% endblock %}

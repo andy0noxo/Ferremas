@@ -1,43 +1,119 @@
 {% extends 'base.html' %}
-{% block title %}Mis Pedidos{% endblock %}
-{% block nav %}
-<ul>
-    <li><a href="{% url 'core:dashboard' %}">Inicio</a></li>
-    <li><a href="{% url 'core:productos_list' %}">Catálogo de productos</a></li>
-</ul>
+
+{% block title %}
+    {% if es_admin_o_vendedor %}
+        Administración de Pedidos
+    {% else %}
+        Mis Pedidos
+    {% endif %}
 {% endblock %}
+
 {% block content %}
-{% if user.rol == 'Administrador' %}
-    <h2>No disponible para administradores.</h2>
-{% else %}
-<h2>Mis Pedidos</h2>
-{% if pedidos %}
-<table border="1">
-    <thead>
-        <tr>
-            <th>ID</th>
-            <th>Fecha</th>
-            <th>Estado</th>
-            <th>Total (CLP)</th>
-            <th>Total (USD)</th>
-            <th>Acciones</th>
-        </tr>
-    </thead>
-    <tbody>
-        {% for pedido in pedidos %}
-        <tr>
-            <td>{{ pedido.id }}</td>
-            <td>{{ pedido.fecha_pedido|default:"-" }}</td>
-            <td>{{ pedido.estado|default:"-" }}</td>
-            <td>${{ pedido.total|default:"-" }}</td>
-            <td>{% if pedido.total_usd %}${{ pedido.total_usd|floatformat:2 }}{% else %}-{% endif %}</td>
-            <td><a href="{% url 'pedidos:pedido_detalle' pedido.id %}">Ver detalle</a></td>
-        </tr>
-        {% endfor %}
-    </tbody>
-</table>
-{% else %}
-<p>No tienes pedidos registrados.</p>
-{% endif %}
-{% endif %}
+<div class="container" style="padding: 2rem;">
+    <h2>
+        {% if es_admin_o_vendedor %}
+            Gestión de Pedidos Pendientes y Procesados
+        {% else %}
+            Historial de Compras
+        {% endif %}
+    </h2>
+    
+    {% if es_admin_o_vendedor %}
+        <!-- Panel de Filtros básico para Admin/Vendedor -->
+        <div class="filters" style="margin-bottom: 2rem; padding: 1rem; background: #f8fafc; border-radius: 8px;">
+            <p><strong>Filtrar por estado:</strong> <span style="color: #64748b;">(Funcionalidad pendiente de implementar en backend)</span></p>
+        </div>
+    {% endif %}
+
+    {% if pedidos %}
+    <div class="table-responsive" style="overflow-x: auto;">
+        <table class="table" style="width: 100%; border-collapse: collapse; margin-top: 1rem;">
+            <thead>
+                <tr style="background-color: #f1f5f9; text-align: left;">
+                    <th style="padding: 1rem;">ID</th>
+                    <th style="padding: 1rem;">Fecha</th>
+                    <th style="padding: 1rem;">Cliente</th>
+                    <th style="padding: 1rem;">Estado</th>
+                    <th style="padding: 1rem;">Total (CLP)</th>
+                    <th style="padding: 1rem;">Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for pedido in pedidos %}
+                <tr style="border-bottom: 1px solid #e2e8f0;">
+                    <td style="padding: 1rem;">#{{ pedido.id }}</td>
+                    <td style="padding: 1rem;">{{ pedido.fecha_pedido|slice:":10" }}</td>
+                    <td style="padding: 1rem;">
+                        {% if pedido.usuario %}
+                            {{ pedido.usuario.nombre }}<br>
+                            <small style="color: #64748b;">{{ pedido.usuario.email }}</small>
+                        {% else %}
+                            -
+                        {% endif %}
+                    </td>
+                    <td style="padding: 1rem;">
+                        <span class="status-badge status-{{ pedido.estado }}">
+                            {{ pedido.estado|title }}
+                        </span>
+                    </td>
+                    <td style="padding: 1rem;">${{ pedido.total }}</td>
+                    <td style="padding: 1rem;">
+                        <a href="{% url 'pedidos:pedido_detalle' pedido.id %}" class="btn-ver" style="color: #3b82f6; text-decoration: none; font-weight: 500; margin-right: 10px;">Ver detalle</a>
+                        
+                        {% if es_admin_o_vendedor %}
+                            <div class="admin-actions" style="margin-top: 0.5rem;">
+                                {% if pedido.estado == 'pendiente' %}
+                                    {% if user.rol == 'Administrador' or user.rol == 'Vendedor' %}
+                                    <form method="post" action="{% url 'pedidos:pedido_actualizar_estado' pedido.id %}" style="display: inline;">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="estado" value="aprobado">
+                                        <button type="submit" class="btn-action btn-approve" style="background: #10b981; color: white; border: none; padding: 4px 8px; border-radius: 4px; cursor: pointer; font-size: 0.8rem;">Aprobar</button>
+                                    </form>
+                                    <form method="post" action="{% url 'pedidos:pedido_actualizar_estado' pedido.id %}" style="display: inline;">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="estado" value="rechazado">
+                                        <button type="submit" class="btn-action btn-reject" style="background: #ef4444; color: white; border: none; padding: 4px 8px; border-radius: 4px; cursor: pointer; font-size: 0.8rem;">Rechazar</button>
+                                    </form>
+                                    {% endif %}
+                                {% elif pedido.estado == 'aprobado' %}
+                                    {% if user.rol == 'Administrador' or user.rol == 'Bodeguero' %}
+                                    <form method="post" action="{% url 'pedidos:pedido_actualizar_estado' pedido.id %}" style="display: inline;">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="estado" value="preparado">
+                                        <button type="submit" class="btn-action" style="background: #f59e0b; color: white; border: none; padding: 4px 8px; border-radius: 4px; cursor: pointer; font-size: 0.8rem;">Marcar Preparado</button>
+                                    </form>
+                                    {% endif %}
+                                {% elif pedido.estado == 'preparado' %}
+                                    {% if user.rol == 'Administrador' or user.rol == 'Vendedor' or user.rol == 'Bodeguero' %}
+                                    <form method="post" action="{% url 'pedidos:pedido_actualizar_estado' pedido.id %}" style="display: inline;">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="estado" value="entregado">
+                                        <button type="submit" class="btn-action" style="background: #3b82f6; color: white; border: none; padding: 4px 8px; border-radius: 4px; cursor: pointer; font-size: 0.8rem;">Marcar Entregado</button>
+                                    </form>
+                                    {% endif %}
+                                {% endif %}
+                            </div>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+        <div class="empty-state" style="text-align: center; padding: 3rem; color: #64748b;">
+            <p>No hay pedidos registrados en el sistema.</p>
+        </div>
+    {% endif %}
+</div>
+
+<style>
+    .status-badge { padding: 4px 10px; border-radius: 99px; font-size: 0.85rem; font-weight: 600; }
+    .status-pendiente { background: #fef9c3; color: #854d0e; }
+    .status-aprobado { background: #dbf4ff; color: #075985; }
+    .status-rechazado { background: #fee2e2; color: #991b1b; }
+    .status-preparado { background: #f3f4f6; color: #1f2937; border: 1px solid #d1d5db; }
+    .status-entregado { background: #dcfce7; color: #166534; }
+    .status-despachado { background: #e0e7ff; color: #3730a3; }
+</style>
 {% endblock %}

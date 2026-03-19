@@ -1,47 +1,140 @@
 {% extends 'base.html' %}
 {% block title %}Stock General{% endblock %}
-{% block nav %}
-<ul>
-    <li><a href="{% url 'core:dashboard' %}">Inicio</a></li>
-    <li><a href="{% url 'core:stock_list' %}">Stock</a></li>
-</ul>
-{% endblock %}
+
 {% block content %}
-<h2>Stock General</h2>
-<form method="get" style="margin-bottom:1em;">
-    <input type="text" name="producto" placeholder="Buscar producto" value="{{ producto_nombre }}">
-    <input type="text" name="sucursal" placeholder="Buscar sucursal" value="{{ sucursal_nombre }}">
-    <button type="submit">Buscar</button>
-    {% if producto_nombre or sucursal_nombre %}
-        <a href="{% url 'core:stock_list' %}">Limpiar</a>
-    {% endif %}
-</form>
-<table border="1">
-    <thead>
-        <tr>
-            <th>Producto</th>
-            <th>Precio (CLP)</th>
-            <th>Precio (USD)</th>
-            <th>Sucursal</th>
-            <th>Cantidad</th>
-            <th>Acciones</th>
-        </tr>
-    </thead>
-    <tbody>
-        {% for s in stock %}
-        <tr>
-            <td>{{ s.producto.nombre }}</td>
-            <td>{% if s.producto.precio_clp %}${{ s.producto.precio_clp|floatformat:0 }}{% elif s.producto.precio %}${{ s.producto.precio|floatformat:0 }}{% else %}-{% endif %}</td>
-            <td>{% if s.producto.precio_usd %}${{ s.producto.precio_usd|floatformat:2 }}{% else %}-{% endif %}</td>
-            <td>{{ s.sucursal.nombre }}</td>
-            <td>{{ s.cantidad }}</td>
-            <td>
-                <a href="{% url 'core:stock_actualizar' s.producto.id s.sucursal.id %}">Actualizar</a>
-            </td>
-        </tr>
-        {% empty %}
-        <tr><td colspan="6">No hay registros de stock.</td></tr>
-        {% endfor %}
-    </tbody>
-</table>
+<div class="content-wrapper" style="padding: 20px;">
+    <div class="header-section" style="margin-bottom: 25px; display: flex; justify-content: space-between; align-items: center;">
+        <div>
+            <h2 style="margin: 0; color: #333; font-size: 24px;">Control de Inventario</h2>
+            <p style="margin: 5px 0 0; color: #666;">Vista general y actualización rápida por sucursal.</p>
+        </div>
+    </div>
+
+    <!-- Panel de Actualización -->
+    <div class="update-panel" style="background: #fff; padding: 25px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); margin-bottom: 30px; border: 1px solid #eee;">
+        <h3 style="margin-top: 0; margin-bottom: 20px; font-size: 18px; color: #2c3e50; border-bottom: 2px solid #f0f2f5; padding-bottom: 10px;">
+            <i class="fas fa-edit"></i> Actualizar Stock Rápido
+        </h3>
+        
+        <form method="post" class="stock-form">
+            {% csrf_token %}
+            {% if form.errors %}
+                <div class="alert alert-danger" style="background: #fee2e2; color: #991b1b; padding: 10px; border-radius: 6px; margin-bottom: 15px; font-size: 14px;">
+                    <strong>Error:</strong> Por favor revise los campos del formulario.
+                </div>
+            {% endif %}
+            
+            <div class="form-row" style="display: flex; gap: 20px; align-items: flex-end; flex-wrap: wrap;">
+                <div class="form-group" style="flex: 2; min-width: 250px;">
+                    <label style="display: block; margin-bottom: 8px; font-weight: 600; font-size: 14px; color: #4a5568;">Producto</label>
+                    <div style="position: relative;">
+                        {{ form.producto_id }}
+                    </div>
+                </div>
+                
+                <div class="form-group" style="flex: 1; min-width: 200px;">
+                    <label style="display: block; margin-bottom: 8px; font-weight: 600; font-size: 14px; color: #4a5568;">Sucursal</label>
+                    {{ form.sucursal_id }}
+                </div>
+                
+                <div class="form-group" style="flex: 1; min-width: 120px;">
+                    <label style="display: block; margin-bottom: 8px; font-weight: 600; font-size: 14px; color: #4a5568;">Cantidad</label>
+                    {{ form.cantidad }}
+                </div>
+                
+                <div class="form-group action" style="flex: 0 0 auto;">
+                    <button type="submit" class="btn-save" style="background: #10b981; color: white; border: none; padding: 10px 25px; border-radius: 8px; cursor: pointer; font-weight: 600; transition: background 0.2s; height: 42px;">
+                        Actualizar
+                    </button>
+                </div>
+            </div>
+        </form>
+    </div>
+
+    <!-- Filtros y Búsqueda -->
+    <div class="filter-panel" style="background: #fff; padding: 15px 20px; border-radius: 10px; border: 1px solid #e2e8f0; margin-bottom: 25px; display: flex; justify-content: space-between; align-items: center;">
+        <form method="get" class="search-form" style="display: flex; gap: 10px; width: 100%; align-items: center;">
+            <div style="position: relative; flex: 1; max-width: 400px;">
+                <input type="text" name="producto" value="{{ producto_nombre }}" placeholder="Buscar producto..." 
+                       style="width: 100%; padding: 10px 15px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 14px; outline: none; transition: border-color 0.2s;">
+            </div>
+            <button type="submit" class="btn-search" style="background: #3b82f6; color: white; border: none; padding: 10px 20px; border-radius: 8px; cursor: pointer; font-weight: 600;">Buscar</button>
+            
+            {% if producto_nombre %}
+                <a href="{% url 'core:stock_list' %}" style="color: #64748b; text-decoration: none; padding: 8px 15px; font-size: 14px; font-weight: 500;">Limpiar filtro</a>
+            {% endif %}
+        </form>
+    </div>
+
+    <!-- Tabla Pivote de Stock -->
+    <div class="table-container" style="background: white; border-radius: 12px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); overflow: hidden; border: 1px solid #e2e8f0;">
+        <div style="overflow-x: auto;">
+            <table class="stock-table" style="width: 100%; border-collapse: collapse; min-width: 800px;">
+                <thead>
+                    <tr style="background: #f8fafc; border-bottom: 2px solid #e2e8f0;">
+                        <th style="text-align: left; padding: 15px 20px; color: #475569; font-weight: 600; width: 30%;">Producto</th>
+                        {% for suc in sucursales %}
+                            <th style="text-align: center; padding: 15px; color: #475569; font-weight: 600;">{{ suc.nombre }}</th>
+                        {% endfor %}
+                        <th style="text-align: center; padding: 15px 20px; color: #1e293b; font-weight: 700; background: #f1f5f9;">Total Global</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for row in pivot_list %}
+                    <tr style="border-bottom: 1px solid #f1f5f9; transition: background 0.1s;">
+                        <td style="padding: 15px 20px;">
+                            <div style="font-weight: 600; color: #334155; font-size: 15px;">{{ row.producto.nombre }}</div>
+                            <div style="font-size: 12px; color: #94a3b8; margin-top: 2px;">ID: {{ row.producto.id }}</div>
+                        </td>
+                        {% for qty in row.ordered_stocks %}
+                            <td style="text-align: center; padding: 12px;">
+                                {% if qty > 0 %}
+                                    <span style="display: inline-block; padding: 4px 12px; background: #dcfce7; color: #166534; border-radius: 99px; font-weight: 600; font-size: 13px;">
+                                        {{ qty }}
+                                    </span>
+                                {% else %}
+                                    <span style="color: #cbd5e1; font-size: 20px;">-</span>
+                                {% endif %}
+                            </td>
+                        {% endfor %}
+                        <td style="text-align: center; padding: 12px 20px; background: #f8fafc; font-weight: 700; color: #334155;">
+                            {{ row.total }}
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="100%" style="text-align: center; padding: 40px; color: #64748b;">
+                            No se encontraron productos registrados.
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<style>
+    /* Estilos base para inputs del formulario generados por Django */
+    .stock-form select, .stock-form input {
+        width: 100%;
+        padding: 10px;
+        border: 1px solid #e2e8f0;
+        border-radius: 8px;
+        background: #fff;
+        font-size: 14px;
+        color: #334155;
+        outline: none;
+        transition: border-color 0.2s, box-shadow 0.2s;
+    }
+    .stock-form select:focus, .stock-form input:focus {
+        border-color: #3b82f6;
+        box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+    }
+    
+    /* Hover effects para la tabla */
+    tbody tr:hover {
+        background-color: #f8fafc;
+    }
+</style>
 {% endblock %}

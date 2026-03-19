@@ -1,101 +1,203 @@
 {% extends 'base.html' %}
+{% load static %}
+{% block title %}Checkout - Ferremas{% endblock %}
 
 {% block content %}
-{% if user.rol == 'Administrador' %}
-    <h2>No disponible para administradores.</h2>
-{% else %}
-<h2>Crear Pedido</h2>
-{% if form.errors %}
-    <div class="errorlist">
-        <ul>
-        {% for field in form %}
-            {% for error in field.errors %}
-                <li>{{ field.label }}: {{ error }}</li>
-            {% endfor %}
-        {% endfor %}
-        {% for error in form.non_field_errors %}
-            <li>{{ error }}</li>
-        {% endfor %}
-        </ul>
+<div class="checkout-container">
+    <h2>Revisión de Pedido</h2>
+
+    <div class="checkout-grid">
+        <!-- Columna Izquierda: Items del Carrito -->
+        <div class="order-summary">
+            <h3>Productos en tu orden</h3>
+            <div class="items-list">
+                {% for item in items %}
+                <div class="checkout-item">
+                    <img src="{{ item.imagen|default:'#' }}" alt="{{ item.nombre }}" class="item-img" onerror="this.src='https://via.placeholder.com/80?text=No+Img'"> 
+                    <div class="item-details">
+                        <h4>{{ item.nombre }}</h4>
+                        <p>Precio: ${{ item.precio|floatformat:0 }}</p>
+                        <p>Cantidad: {{ item.cantidad }}</p>
+                    </div>
+                    <div class="item-total">
+                        <strong>${{ item.subtotal|floatformat:0 }}</strong>
+                    </div>
+                </div>
+                {% empty %}
+                <p>No hay productos en el carrito.</p>
+                <a href="{% url 'core:productos_list' %}" class="btn">Volver al catálogo</a>
+                {% endfor %}
+            </div>
+            
+            <div class="totals-section">
+                <div class="row">
+                    <span>Subtotal:</span>
+                    <span>${{ subtotal|floatformat:0 }}</span>
+                </div>
+                <div class="row shipping-row">
+                    <span>Envío:</span>
+                    <span id="shipping-display">$0</span>
+                </div>
+                <div class="row total-row">
+                    <span>Total a Pagar:</span>
+                    <span id="total-display">${{ subtotal|floatformat:0 }}</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Columna Derecha: Opciones de Entrega -->
+        <div class="delivery-options">
+            <h3>Opciones de Entrega</h3>
+            <form method="post" action="{% url 'pedidos:pedido_crear' %}">
+                {% csrf_token %}
+                
+                <div class="delivery-selector">
+                    <div class="option" onclick="document.getElementById('retiro').checked=true; updateUI();">
+                        <input type="radio" id="retiro" name="tipo_entrega" value="retiro" checked>
+                        <label for="retiro">
+                            <strong>Retiro en Tienda</strong>
+                            <span class="muted">Gratis</span>
+                        </label>
+                    </div>
+                    <div class="option" onclick="document.getElementById('despacho').checked=true; updateUI();">
+                        <input type="radio" id="despacho" name="tipo_entrega" value="despacho">
+                        <label for="despacho">
+                            <strong>Despacho a Domicilio</strong>
+                            <span class="price">+$5.000</span>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Formulario Retiro -->
+                <div id="retiro-form" class="delivery-form-section">
+                    <label for="sucursal_id">Selecciona tu sucursal:</label>
+                    <select name="sucursal_id" id="sucursal_id" class="form-control" required>
+                        <option value="">-- Seleccionar Sucursal --</option>
+                        {% for sucursal in sucursales %}
+                        <option value="{{ sucursal.id }}">{{ sucursal.nombre }} ({{ sucursal.direccion }})</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <!-- Formulario Despacho -->
+                <div id="despacho-form" class="delivery-form-section" style="display:none;">
+                    <div class="form-group">
+                        <label>Región:</label>
+                        <select name="region" id="region" class="form-control" onchange="updateComunas()">
+                            <option value="">Seleccione Región</option>
+                            <option value="RM">Metropolitana</option>
+                            <option value="V">Valparaíso</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Comuna:</label>
+                        <select name="comuna" id="comuna" class="form-control">
+                            <option value="">Seleccione Comuna</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Dirección:</label>
+                        <input type="text" name="direccion" id="direccion" class="form-control" placeholder="Ej: Av. Principal 123">
+                    </div>
+                </div>
+
+                <button type="submit" class="btn-pay">Ir a Pagar con Webpay</button>
+            </form>
+        </div>
     </div>
-{% endif %}
-<form method="post">
-    {% csrf_token %}
-    <label for="sucursal_id">Sucursal de retiro:</label>
-    <select id="sucursal_id" name="sucursal_id" required>
-        <option value="">Seleccione</option>
-        {% for sucursal in sucursales %}
-            <option value="{{ sucursal.id }}">{{ sucursal.nombre }}</option>
-        {% endfor %}
-    </select><br>
-    <label for="metodo_pago">Método de pago:</label>
-    <select id="metodo_pago" name="metodo_pago" required>
-        <option value="">Seleccione</option>
-        <option value="debito">Débito</option>
-        <option value="credito">Crédito</option>
-        <option value="transferencia">Transferencia</option>
-    </select><br>
-    <h3>Productos</h3>
-    <table border="1">
-        <thead>
-            <tr>
-                <th>Producto</th>
-                <th>Precio (CLP)</th>
-                <th>Precio (USD)</th>
-                <th>Stock</th>
-                <th>Cantidad</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for producto in productos %}
-            <tr>
-                <td>{{ producto.nombre }}</td>
-                <td>{% if producto.precio_clp %}${{ producto.precio_clp|floatformat:0 }}{% elif producto.precio %}${{ producto.precio|floatformat:0 }}{% else %}-{% endif %}</td>
-                <td>{% if producto.precio_usd %}${{ producto.precio_usd|floatformat:2 }}{% else %}-{% endif %}</td>
-                <td id="stock-{{ producto.id }}">-</td>
-                <td>
-                    <input type="number" name="productos" min="0" max="0" value="{{ producto.cantidad_carrito|default:'0' }}" data-producto-id="{{ producto.id }}">
-                </td>
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
-    <input type="hidden" name="productos" id="productos_hidden">
-    <button type="submit" onclick="return prepararProductos();">Crear Pedido</button>
-</form>
-<script id="stocks-data" type="application/json">{{ stocks_json|safe }}</script>
+</div>
+
 <script>
-var stocks = JSON.parse(document.getElementById('stocks-data').textContent);
-function actualizarStockInputs() {
-    var sucursalId = document.getElementById('sucursal_id').value;
-    document.querySelectorAll('input[name="productos"]').forEach(function(input) {
-        var prodId = input.getAttribute('data-producto-id');
-        var stock = (stocks[prodId] && stocks[prodId][sucursalId] !== undefined) ? stocks[prodId][sucursalId] : 0;
-        input.max = stock;
-        document.getElementById('stock-' + prodId).textContent = stock;
-        if (parseInt(input.value) > stock) {
-            input.value = stock;
+    const subtotal = {{ subtotal }};
+    const shippingCost = 5000;
+
+    function updateUI() {
+        const isDespacho = document.getElementById('despacho').checked;
+        const retiroForm = document.getElementById('retiro-form');
+        const despachoForm = document.getElementById('despacho-form');
+        const shippingEl = document.getElementById('shipping-display');
+        const totalEl = document.getElementById('total-display');
+        
+        const sucursalInput = document.getElementById('sucursal_id');
+        const regionInput = document.getElementById('region');
+        const comunaInput = document.getElementById('comuna');
+        const direccionInput = document.getElementById('direccion');
+
+        if (isDespacho) {
+            retiroForm.style.display = 'none';
+            despachoForm.style.display = 'block';
+            
+            shippingEl.textContent = '$' + formatNumber(shippingCost);
+            totalEl.textContent = '$' + formatNumber(subtotal + shippingCost);
+            
+            sucursalInput.required = false;
+            regionInput.required = true;
+            comunaInput.required = true;
+            direccionInput.required = true;
+        } else {
+            retiroForm.style.display = 'block';
+            despachoForm.style.display = 'none';
+            
+            shippingEl.textContent = '$0';
+            totalEl.textContent = '$' + formatNumber(subtotal);
+            
+            sucursalInput.required = true;
+            regionInput.required = false;
+            comunaInput.required = false;
+            direccionInput.required = false;
         }
-        input.disabled = (stock == 0);
-    });
-}
-window.onload = function() {
-    actualizarStockInputs();
-};
-document.getElementById('sucursal_id').addEventListener('change', actualizarStockInputs);
-function prepararProductos() {
-    var productos = [];
-    document.querySelectorAll('input[name="productos"]').forEach(function(input) {
-        var cantidad = parseInt(input.value);
-        var id = input.getAttribute('data-producto-id');
-        if (cantidad > 0 && id) {
-            productos.push(id + '-' + cantidad);
-        }
-    });
-    document.getElementById('productos_hidden').value = productos;
-    return true;
-}
+    }
+
+    function formatNumber(num) {
+        return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+    }
+    
+    function updateComunas() {
+        const region = document.getElementById('region').value;
+        const comunaSel = document.getElementById('comuna');
+        comunaSel.innerHTML = '<option value="">Seleccione Comuna</option>';
+        
+        const comunasRM = ['Santiago', 'Providencia', 'Las Condes', 'Maipú', 'Puente Alto'];
+        const comunasV = ['Valparaíso', 'Viña del Mar', 'Quilpué', 'Villa Alemana'];
+        
+        let options = [];
+        if (region === 'RM') options = comunasRM;
+        else if (region === 'V') options = comunasV;
+        
+        options.forEach(c => {
+            const opt = document.createElement('option');
+            opt.value = c;
+            opt.textContent = c;
+            comunaSel.appendChild(opt);
+        });
+    }
+
+    document.addEventListener('DOMContentLoaded', updateUI);
 </script>
-{% endif %}
-<a href="{% url 'pedidos:pedidos_list' %}">Volver al listado</a>
+
+<style>
+    .checkout-container { max-width: 1000px; margin: 0 auto; padding: 20px; }
+    .checkout-grid { display: grid; grid-template-columns: 1.2fr 0.8fr; gap: 30px; }
+    @media(max-width: 768px) { .checkout-grid { grid-template-columns: 1fr; } }
+    
+    .checkout-item { display: flex; gap: 15px; padding: 15px 0; border-bottom: 1px solid #eee; }
+    .item-img { width: 80px; height: 80px; object-fit: cover; background: #eee; border-radius: 4px; }
+    .item-total { margin-left: auto; font-size: 1.1em; }
+    
+    .totals-section { background: #f9f9f9; padding: 20px; margin-top: 20px; border-radius: 8px; }
+    .totals-section .row { display: flex; justify-content: space-between; margin-bottom: 10px; }
+    .total-row { font-size: 1.4em; font-weight: bold; border-top: 2px solid #ddd; padding-top: 10px; margin-top: 10px; }
+    
+    .delivery-options { background: #fff; padding: 20px; border: 1px solid #eee; border-radius: 8px; height: fit-content; }
+    .delivery-selector { display: flex; flex-direction: column; gap: 10px; margin-bottom: 20px; cursor: pointer; }
+    .delivery-selector .option { border: 1px solid #ddd; padding: 15px; border-radius: 6px; display: flex; gap: 10px; align-items: center; cursor: pointer; transition: 0.2s; }
+    .delivery-selector .option:hover { background: #f0f8ff; border-color: #2563eb; }
+    .delivery-selector input[type="radio"]:checked + label { color: #2563eb; }
+    
+    .form-control { width: 100%; padding: 10px; margin-bottom: 15px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; }
+    .btn-pay { width: 100%; background: #e63946; color: white; padding: 15px; border: none; font-size: 1.2em; font-weight: bold; cursor: pointer; border-radius: 6px; margin-top: 20px; transition: 0.3s; } 
+    .btn-pay:hover { background: #d62839; }
+    .muted { color: #888; font-size: 0.9em; margin-left: auto; }
+    .price { color: #2563eb; font-weight: bold; margin-left: auto; }
+</style>
 {% endblock %}

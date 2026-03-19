@@ -19,6 +19,10 @@ module.exports = (sequelize, DataTypes) => {
       validate: {
         min: 1
       }
+    },
+    imagen_url: {
+      type: DataTypes.STRING(500),
+      allowNull: true
     }
   }, {
     tableName: 'Producto',

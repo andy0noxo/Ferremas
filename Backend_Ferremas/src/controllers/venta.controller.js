@@ -82,3 +82,60 @@ exports.informeMensualPorSucursal = async (req, res, next) => {
     next(error);
   }
 };
+
+exports.informeVentasGenerico = async (req, res, next) => {
+  try {
+    const { sucursalId, anio, periodo } = req.query;
+    if (!sucursalId || !anio || !periodo) {
+      return res.status(400).json({ message: 'Debe indicar sucursalId, anio y periodo' });
+    }
+    
+    let inicio, fin;
+    if (periodo === 'anual') {
+      inicio = new Date(anio, 0, 1);
+      fin = new Date(parseInt(anio) + 1, 0, 1);
+    } else if (periodo.startsWith('semestre')) {
+      const sem = parseInt(periodo.split('-')[1]);
+      inicio = new Date(anio, (sem - 1) * 6, 1);
+      fin = new Date(anio, sem * 6, 1);
+    } else if (periodo.startsWith('trimestre')) {
+      const trim = parseInt(periodo.split('-')[1]);
+      inicio = new Date(anio, (trim - 1) * 3, 1);
+      fin = new Date(anio, trim * 3, 1);
+    } else if (periodo.startsWith('mes')) {
+      const m = parseInt(periodo.split('-')[1]);
+      inicio = new Date(anio, m - 1, 1);
+      fin = new Date(anio, m, 1);
+    } else {
+      return res.status(400).json({ message: 'Periodo no valido' });
+    }
+
+    const ventas = await db.Pedido.findAll({
+      where: {
+        sucursal_retiro: sucursalId,
+        fecha_pedido: { [db.Sequelize.Op.gte]: inicio, [db.Sequelize.Op.lt]: fin },
+        estado: { [db.Sequelize.Op.not]: 'rechazado' }
+      },
+      include: [
+        { model: db.Sucursal, as: 'sucursal', attributes: ['id', 'nombre'] },
+        { model: db.Usuario, as: 'usuario', attributes: ['id', 'nombre'] }
+      ]
+    });
+    
+    const totalVentas = ventas.reduce((acc, v) => acc + (v.total || 0), 0);
+
+    // Get sucursal info even if empty
+    const sucursalInfo = await db.Sucursal.findByPk(sucursalId, { attributes: ['id', 'nombre'] });
+
+    res.json({
+      sucursal: sucursalInfo,
+      anio,
+      periodo,
+      totalVentas,
+      cantidadPedidos: ventas.length,
+      pedidos: ventas
+    });
+  } catch (error) {
+    next(error);
+  }
+};

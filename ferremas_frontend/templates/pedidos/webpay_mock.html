@@ -1,0 +1,50 @@
+{% extends 'base.html' %}  
+{% block title %}Webpay Mock - Ferremas{% endblock %}  
+  
+{% block content %}  
+<div class="webpay-container">  
+    <div class="webpay-card">  
+        <div class="webpay-header">  
+            <h2>Webpay Plus</h2>  
+            <p>Ambiente de Pruebas (Simulación)</p>  
+        </div>  
+        <div class="webpay-body">  
+            <div class="merchant-info">  
+                <p>Comercio: <strong>Ferremas</strong></p>  
+                <p>Monto a Pagar:</p>  
+                <div class="amount">${{ total|floatformat:0 }}</div>  
+            </div>  
+            
+            <div class="card-simulation">  
+                <p>Seleccione método de pago simulado:</p>  
+                <div class="card-option selected">  
+                    <span>💳</span> Crédito / Débito  
+                </div>  
+            </div>  
+  
+            <div class="actions">  
+                <form action="{% url 'pedidos:pago_retorno' %}" method="get">  
+                    <button type="submit" class="btn-success">CONFIRMAR PAGO (Éxito)</button>  
+                </form>  
+                <br>  
+                <a href="{% url 'pedidos:pedido_crear' %}" class="btn-cancel">CANCELAR (Fracaso)</a>  
+            </div>  
+        </div>  
+    </div>  
+</div>  
+  
+<style>  
+    .webpay-container { background-color: #f4f4f4; height: 80vh; display: flex; justify-content: center; align-items: center; }  
+    .webpay-card { background: white; width: 400px; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); overflow: hidden; font-family: Arial, sans-serif; }  
+    .webpay-header { background: #ff4d4d; color: white; padding: 20px; text-align: center; }  
+    .webpay-header h2 { margin: 0; font-weight: 800; font-style: italic; letter-spacing: 1px; }  
+    .webpay-body { padding: 30px; }  
+    .merchant-info { text-align: center; margin-bottom: 30px; border-bottom: 1px solid #eee; padding-bottom: 20px; }  
+    .amount { font-size: 2em; color: #333; font-weight: bold; margin-top: 10px; }  
+    .card-simulation { margin-bottom: 30px; }  
+    .card-option { border: 2px solid #2563eb; background: #f0f7ff; padding: 15px; border-radius: 6px; display: flex; gap: 10px; align-items: center; color: #2563eb; font-weight: bold; }  
+    .btn-success { width: 100%; background: #28a745; color: white; padding: 15px; border: none; font-size: 1.1em; font-weight: bold; cursor: pointer; border-radius: 4px; transition: 0.2s; }  
+    .btn-success:hover { background: #218838; }  
+    .btn-cancel { display: block; width: 100%; text-align: center; margin-top: 15px; color: #dc3545; text-decoration: none; font-weight: bold; }  
+</style>  
+{% endblock %}

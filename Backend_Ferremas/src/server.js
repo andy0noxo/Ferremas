@@ -27,8 +27,9 @@ app.use(cors({
     // Allow requests with no origin (like mobile apps, curl, etc)
     if(!origin) return callback(null, true);
     
-    // Allow all localhost origins
-    if(origin.startsWith('http://localhost:')) {
+
+    // Allow all localhost origins (IPv4 and IPv6)
+    if(origin.startsWith('http://localhost:') || origin.startsWith('http://127.0.0.1:')) {
       return callback(null, true);
     }
     

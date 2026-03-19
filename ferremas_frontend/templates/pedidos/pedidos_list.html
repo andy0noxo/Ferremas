@@ -1,0 +1,81 @@
+{% extends 'base.html' %}
+{% block title %}Mis Pedidos{% endblock %}
+
+{% block content %}
+<div class="pedidos-container">
+    {% if user.rol == 'Administrador' %}
+        <h2>No disponible para administradores.</h2>
+    {% else %}
+    <h2>Mis Pedidos</h2>
+    
+    {% if pedidos %}
+    <div class="table-responsive">
+        <table class="pedidos-table">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Estado</th>
+                    <th>Método Entrega</th>
+                    <th>Total (CLP)</th>
+                    <!-- <th>Total (USD)</th> --> <!-- Opcional -->
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for pedido in pedidos %}
+                <tr>
+                    <td>#{{ pedido.id }}</td>
+                    
+                    <td><span class="badg badge-{{ pedido.estado|default:'pendiente'|lower }}">{{ pedido.estado|default:"Pendiente"|title }}</span></td>
+                    <td>
+                        {% if pedido.sucursal_retiro or pedido.sucursal %}
+                            Retiro en Tienda{% if pedido.sucursal %} ({{ pedido.sucursal.nombre }}){% endif %}
+                        {% else %}
+                            Despacho a Domicilio
+                        {% endif %}
+                    </td>
+                    <td>${{ pedido.total|floatformat:0 }}</td>
+                    <!-- <td>
+                        {% if pedido.total_usd %}
+                            USD ${{ pedido.total_usd|floatformat:2 }}
+                        {% else %}
+                            -
+                        {% endif %}
+                    </td> -->
+                    <td>
+                        <a href="{% url 'pedidos:pedido_detalle' pedido.id %}" class="btn-sm">Ver Detalle</a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+        <div class="empty-state">
+            <p>Aún no has realizado pedidos.</p>
+            <a href="{% url 'core:productos_list' %}" class="btn">Ir al Catálogo</a>
+        </div>
+    {% endif %}
+    {% endif %}
+</div>
+
+<style>
+    .pedidos-container { max-width: 1000px; margin: 20px auto; padding: 20px; }
+    .table-responsive { overflow-x: auto; margin-top: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); border-radius: 8px; }
+    .pedidos-table { width: 100%; border-collapse: collapse; background: white; }
+    .pedidos-table th, .pedidos-table td { padding: 15px; text-align: left; border-bottom: 1px solid #eee; }
+    .pedidos-table th { background-color: #f8f9fa; font-weight: 600; color: #2c3e50; }
+    .pedidos-table tr:hover { background-color: #f8fbff; }
+    
+    .badg { padding: 4px 8px; border-radius: 4px; font-size: 0.85em; font-weight: bold; text-transform: capitalize; }
+    .badge-pagado, .badge-aprobado, .badge-completado { background: #dcfce7; color: #166534; }
+    .badge-pendiente { background: #fef9c3; color: #854d0e; }
+    .badge-rechazado { background: #fee2e2; color: #991b1b; }
+    
+    .btn-sm { display: inline-block; padding: 8px 12px; background: #2563eb; color: white; text-decoration: none; border-radius: 4px; font-size: 0.9em; transition: 0.2s; }
+    .btn-sm:hover { background: #1d4ed8; }
+    
+    .empty-state { text-align: center; padding: 40px; background: #f9f9f9; border-radius: 8px; }
+    h2 { color: #2c3e50; border-bottom: 2px solid #eee; padding-bottom: 10px; margin-bottom: 20px; }
+</style>
+{% endblock %}

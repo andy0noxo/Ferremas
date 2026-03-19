@@ -67,6 +67,7 @@ exports.createPedido = async (req, res, next) => {
     const pedido = await db.Pedido.create({
       usuario_id: req.user.id,
       sucursal_retiro: sucursalId,
+      direccion_envio: req.body.direccionEnvio || req.body.direccion_envio || null,
       metodo_pago: req.body.metodoPago || req.body.metodo_pago,
       total: total
     }, { transaction });
@@ -125,15 +126,15 @@ exports.createPedido = async (req, res, next) => {
 exports.updateEstado = async (req, res, next) => {
   try {
     const pedido = await db.Pedido.findByPk(req.params.id, {
-      include: [{ model: db.Usuario, attributes: ['email'] }]
+      include: [{ model: db.Usuario, as: 'usuario', attributes: ['email'] }]
     });
 
     if (!pedido) throw new Error('Pedido no encontrado');
 
     await pedido.update({ estado: req.body.estado });
     
-    if (req.body.estado === 'preparado') {
-      await EmailService.sendReadyForPickup(pedido.Usuario.email, pedido.id);
+    if (req.body.estado === 'preparado' && pedido.usuario) {
+      await EmailService.sendReadyForPickup(pedido.usuario.email, pedido.id);
     }
 
     res.json(pedido);

@@ -70,7 +70,7 @@ exports.create = async (req, res, next) => {
       db.Stock.create({
         producto_id: producto.id,
         sucursal_id: sucursal.id,
-        cantidad: 0
+        cantidad: req.body.stock !== undefined ? parseInt(req.body.stock, 10) : 0
       }, { transaction })
     );
 
@@ -167,6 +167,27 @@ exports.update = async (req, res, next) => {
       marca_id: req.body.marca_id,
       categoria_id: req.body.categoria_id
     }, { transaction });
+
+    if (req.body.stock !== undefined) {
+      const sucursales = await db.Sucursal.findAll();
+      const stockPromises = sucursales.map(async sucursal => {
+        const stockRecord = await db.Stock.findOne({
+          where: { producto_id: producto.id, sucursal_id: sucursal.id },
+          transaction
+        });
+        if (stockRecord) {
+          return stockRecord.update({ cantidad: parseInt(req.body.stock, 10) }, { transaction });
+        } else {
+          return db.Stock.create({
+            producto_id: producto.id,
+            sucursal_id: sucursal.id,
+            cantidad: parseInt(req.body.stock, 10)
+          }, { transaction });
+        }
+      });
+      await Promise.all(stockPromises);
+    }
+
     await transaction.commit();
     const updatedProduct = await db.Producto.findByPk(producto.id, { include: includeOptions });
     res.json(updatedProduct);

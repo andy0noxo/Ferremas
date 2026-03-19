@@ -50,6 +50,7 @@ CREATE TABLE Producto (
     nombre VARCHAR(100) NOT NULL,
     descripcion TEXT,
     precio INT NOT NULL,
+    imagen_url VARCHAR(500),
     marca_id INT,
     categoria_id INT,
     FOREIGN KEY (marca_id) REFERENCES Marca(id),
@@ -127,10 +128,10 @@ INSERT INTO Marca (nombre) VALUES ('Bosch');
 INSERT INTO Marca (nombre) VALUES ('Bosch2');
 INSERT INTO Categoria (nombre) VALUES ('Herramientas Eléctricas');
 INSERT INTO Categoria (nombre) VALUES ('Herramientas Eléctricas2');
-INSERT INTO Producto (nombre, descripcion, precio, marca_id, categoria_id) 
-VALUES ('Taladro X200', 'Taladro percutor 750W', 99.99, 1, 1);
-INSERT INTO Producto (nombre, descripcion, precio, marca_id, categoria_id) 
-VALUES ('Taladro X2002', 'Taladro percutor 750W2', 92, 2, 2);
+INSERT INTO Producto (nombre, descripcion, precio, imagen_url, marca_id, categoria_id) 
+VALUES ('Taladro X200', 'Taladro percutor 750W', 99990, 'https://sodimac.scene7.com/is/image/SodimacCL/3282216_01?wid=800&hei=800&qlt=70', 1, 1);
+INSERT INTO Producto (nombre, descripcion, precio, imagen_url, marca_id, categoria_id) 
+VALUES ('Taladro X2002', 'Taladro percutor 750W2', 92000, 'https://sodimac.scene7.com/is/image/SodimacCL/883392X_01?wid=800&hei=800&qlt=70', 2, 2);
 INSERT INTO Usuario (nombre, email, contrasena, rut, rol_id, sucursal_id) 
 VALUES ('Juan Pérez', 'admin@ferremas.cl', SHA2('Admin123', 256), '12345678-9', 1, 1);
 INSERT INTO Stock (producto_id, sucursal_id, cantidad) 

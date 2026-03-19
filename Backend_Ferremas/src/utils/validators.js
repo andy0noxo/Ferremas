@@ -11,10 +11,11 @@
 const isValidRUT = (rut) => {
   if (!rut || typeof rut !== 'string') return false;
   
+  const cleanRut = rut.replace(/\./g, '');
   const rutRegex = /^[0-9]{7,8}-[0-9kK]$/;
-  if (!rutRegex.test(rut)) return false;
+  if (!rutRegex.test(cleanRut)) return false;
   
-  const [numbers, dv] = rut.split('-');
+  const [numbers, dv] = cleanRut.split('-');
   let sum = 0;
   let multiplier = 2;
   

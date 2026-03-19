@@ -37,7 +37,7 @@ const registerSchema = [
     .withMessage(MESSAGES.VALIDATION.INVALID_EMAIL),
   
   body('rut')
-    .matches(/^[0-9]{7,8}-[0-9kK]$/)
+    .matches(/^([0-9]{7,8}|[0-9]{1,2}(\.[0-9]{3}){2})-[0-9kK]$/)
     .withMessage(MESSAGES.VALIDATION.INVALID_RUT),
   
   body('contrasena')

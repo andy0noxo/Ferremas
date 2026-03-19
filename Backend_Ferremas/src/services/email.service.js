@@ -112,6 +112,19 @@ class EmailService {
     logger.info(`[TEST] Email de bienvenida simulado para ${email}`);
     return true;
   }
+
+  async sendReadyForPickup(email, pedidoId) {
+    try {
+      logger.info(`[EMAIL] Notificación: Su pedido #${pedidoId} está listo para retiro. Enviado a ${email}`);
+      // Aquí se podría implementar el envío real usando this.transporter.sendMail(...)
+      // Por ahora retornamos true para evitar errores si no hay SMTP configurado
+      return true;
+    } catch (error) {
+      logger.error('Error enviando notificación de retiro:', error);
+      // No lanzamos error para no interrumpir el flujo del pedido
+      return false;
+    }
+  }
 }
 
 module.exports = new EmailService();

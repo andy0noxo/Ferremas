@@ -1,13 +1,44 @@
 {% extends 'base.html' %}
 {% block title %}Panel Vendedor{% endblock %}
-{% block nav %}
-<ul>    <li><a href="{% url 'pedidos:pedidos_list' %}">Pedidos</a></li>
-    <li><a href="{% url 'core:productos_list' %}">Productos</a></li>
-    <li><a href="{% url 'core:stock_list' %}">Stock</a></li>
-</ul>
-{% endblock %}
+
 {% block content %}
-<h2>Panel de Ventas</h2>
-<p>Bienvenido, {{ user.nombre }}.</p>
-<p>Aquí puedes gestionar ventas, clientes y productos.</p>
+<div class="dashboard-container">
+    <h2>Panel de Ventas</h2>
+    <p>Bienvenido, <strong>{{ user.nombre }}</strong>.</p>
+    <p>Aquí puedes gestionar pedidos, consultar productos y verificar el stock.</p>
+
+    <div class="dashboard-grid">
+        <a href="{% url 'pedidos:pedidos_list' %}" class="dashboard-card">
+            <div class="card-icon">🛒</div>
+            <h3>Gestión de Pedidos</h3>
+            <p>Validar pedidos pendientes y revisar historial de ventas.</p>
+        </a>
+
+        <a href="{% url 'core:productos_list' %}" class="dashboard-card">
+            <div class="card-icon">📦</div>
+            <h3>Catálogo de Productos</h3>
+            <p>Consultar precios y descripción de productos.</p>
+        </a>
+
+        <a href="{% url 'core:stock_list' %}" class="dashboard-card">
+            <div class="card-icon">🏢</div>
+            <h3>Consulta de Stock</h3>
+            <p>Verificar disponibilidad de productos por sucursal.</p>
+        </a>
+    </div>
+</div>
+
+<style>
+    .dashboard-container { padding: 2rem; background-color: white; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); margin-top: 2rem; max-width: 1200px; margin-left: auto; margin-right: auto; }
+    .dashboard-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 2rem; margin-top: 2.5rem; }
+    
+    .dashboard-card { display: flex; flex-direction: column; align-items: center; text-align: center; padding: 2rem; background-color: white; border: 1px solid #e2e8f0; border-radius: 12px; text-decoration: none; color: #334155; transition: all 0.3s ease; height: 100%; }
+    .dashboard-card:hover { transform: translateY(-5px); box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1); border-color: #3b82f6; }
+    
+    .card-icon { font-size: 3rem; margin-bottom: 1rem; background: #f1f5f9; width: 80px; height: 80px; display: flex; align-items: center; justify-content: center; border-radius: 50%; }
+    .dashboard-card:hover .card-icon { background: #dbeafe; }
+    
+    .dashboard-card h3 { margin: 0 0 0.75rem 0; color: #0f172a; font-size: 1.25rem; font-weight: 600; }
+    .dashboard-card p { margin: 0; color: #64748b; font-size: 0.95rem; line-height: 1.5; }
+</style>
 {% endblock %}

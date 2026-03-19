@@ -19,7 +19,7 @@ router.post('/registro',
   [
     body('nombre').trim().isLength({ min: 2, max: 100 }),
     body('email').isEmail().normalizeEmail(),
-    body('rut').matches(/^[0-9]{7,8}-[0-9kK]$/),
+    body('rut').matches(/^([0-9]{7,8}|[0-9]{1,2}(\.[0-9]{3}){2})-[0-9kK]$/),
     body('contrasena').isStrongPassword({
       minLength: 8,
       minLowercase: 1,

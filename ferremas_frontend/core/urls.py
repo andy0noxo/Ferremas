@@ -21,5 +21,6 @@ urlpatterns = [
     path('usuarios/<int:usuario_id>/eliminar/', views.usuario_eliminar, name='usuario_eliminar'),
     path('stock/', views.stock_general, name='stock_list'),
     path('stock/<int:producto_id>/<int:sucursal_id>/actualizar/', views.stock_actualizar, name='stock_actualizar'),
-    path('informe-ventas-mensual/', views.informe_ventas_mensual, name='informe_ventas_mensual'),
+    path('informes-ventas/', views.informe_ventas, name='informe_ventas'),
+    path('api/carrito/', views.carrito_api, name='carrito_api'),  # API para carrito modal
 ]

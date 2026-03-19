@@ -24,13 +24,15 @@
 
     <div class="card shipping-card">
         <h3>Detalles de Entrega</h3>
-        {% if pedido.direccion_envio %}
-            <p><strong>Tipo:</strong> Despacho a Domicilio</p>
-            <p><strong>Dirección:</strong> {{ pedido.direccion_envio }}</p>
-            <p><strong>Sucursal de Origen:</strong> {{ pedido.sucursal.nombre }}</p>
-        {% else %}
+        {% if pedido.sucursal %}
             <p><strong>Tipo:</strong> Retiro en Tienda</p>
             <p><strong>Sucursal:</strong> {{ pedido.sucursal.nombre }}</p>
+        {% else %}
+            <p><strong>Tipo:</strong> Despacho a Domicilio</p>
+            <!-- If address details are available -->
+            {% if pedido.direccion_envio %}
+            <p><strong>Dirección:</strong> {{ pedido.direccion_envio }}</p>
+            {% endif %}
         {% endif %}
     </div>
 </div>

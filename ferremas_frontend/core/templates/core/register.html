@@ -34,12 +34,19 @@
             <input type="password" id="password" name="password" required minlength="8" 
                 autocomplete="new-password">
             <small>Mínimo 8 caracteres, debe incluir mayúsculas, minúsculas, números y símbolos.</small>
+        </div>
+
+        <div class="form-group">
+            <label for="confirm_password">Confirmar Contraseña:</label>
+            <input type="password" id="confirm_password" name="confirm_password" required minlength="8" 
+                autocomplete="new-password">
+            <small id="password_match_msg"></small>
         </div>        <div class="form-group">
             <label for="rut">RUT:</label>
             <input type="text" id="rut" name="rut" value="{{ form_data.rut|default:'' }}" 
-                required pattern="^[0-9]{7,8}-[0-9kK]$" placeholder="12345678-9"
+                required pattern="^([0-9]{1,2}\.[0-9]{3}\.[0-9]{3}|[0-9]{7,8})-[0-9kK]$" placeholder="19.134.035-3"
                 autocomplete="off">
-            <small>Formato: 12345678-9 o 1234567-8</small>
+            <small>Ejemplo: 12.345.678-9 o 12345678-9</small>
         </div>
 
         <div class="form-group">
@@ -48,8 +55,6 @@
                 <option value="Cliente">Cliente</option>
                 <option value="Vendedor">Vendedor</option>
                 <option value="Bodeguero">Bodeguero</option>
-                <option value="Contador">Contador</option>
-                <option value="Administrador">Administrador</option>
                 <option value="Contador">Contador</option>
                 <option value="Administrador">Administrador</option>
             </select>
@@ -65,81 +70,106 @@
 
 <style>
     .register-container {
-        max-width: 400px;
-        margin: 2rem auto;
-        padding: 2rem;
-        background: white;
-        border-radius: 8px;
-        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        max-width: 450px;
+        margin: 3rem auto;
+        padding: 2.5rem;
+        background: #ffffff;
+        border-radius: 12px;
+        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08);
+        border: 1px solid #f3f4f6;
+    }
+
+    .register-container h2 {
+        text-align: center;
+        color: #1f2937;
+        margin-bottom: 2rem;
+        font-size: 1.75rem;
+        font-weight: 700;
     }
 
     .form-group {
-        margin-bottom: 1rem;
+        margin-bottom: 1.25rem;
     }
 
     .form-group label {
         display: block;
         margin-bottom: 0.5rem;
-        font-weight: bold;
-        color: #374151;
+        font-weight: 600;
+        color: #4b5563;
+        font-size: 0.95rem;
     }
 
-    .form-group input {
+    .form-group input, 
+    .form-group select {
         width: 100%;
-        padding: 0.75rem;
+        padding: 0.85rem;
         border: 1px solid #d1d5db;
-        border-radius: 4px;
+        border-radius: 6px;
         font-size: 1rem;
-        transition: border-color 0.15s ease;
+        color: #374151;
+        background-color: #f9fafb;
+        transition: all 0.2s ease;
+        box-sizing: border-box;
     }
 
-    .form-group input:focus {
+    .form-group input:focus,
+    .form-group select:focus {
         outline: none;
-        border-color: #2563eb;
-        box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+        border-color: #3b82f6;
+        background-color: #ffffff;
+        box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.15);
     }
 
     .form-group small {
         display: block;
-        margin-top: 0.25rem;
+        margin-top: 0.4rem;
         color: #6b7280;
-        font-size: 0.875rem;
+        font-size: 0.8rem;
+        line-height: 1.4;
     }
 
     .message {
         padding: 1rem;
-        border-radius: 4px;
-        margin-bottom: 1rem;
-        font-size: 0.875rem;
+        border-radius: 6px;
+        margin-bottom: 1.5rem;
+        font-size: 0.9rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
     }
 
     .message.error {
-        background-color: #fee2e2;
-        color: #991b1b;
+        background-color: #fef2f2;
+        color: #b91c1c;
         border: 1px solid #fecaca;
     }
 
     .message.success {
-        background-color: #dcfce7;
-        color: #166534;
+        background-color: #f0fdf4;
+        color: #15803d;
         border: 1px solid #bbf7d0;
     }
 
     .submit-button {
         width: 100%;
-        padding: 0.75rem;
+        padding: 0.85rem;
+        margin-top: 1rem;
         background-color: #2563eb;
         color: white;
         border: none;
-        border-radius: 4px;
-        font-size: 1rem;
-        font-weight: 500;
+        border-radius: 6px;
+        font-size: 1.05rem;
+        font-weight: 600;
         cursor: pointer;
-        transition: background-color 0.15s ease;
+        transition: background-color 0.2s ease, transform 0.1s ease;
     }
 
     .submit-button:hover {
         background-color: #1d4ed8;
+    }
+
+    .submit-button:active {
+        transform: scale(0.98);
     }
 
     .login-link {
@@ -148,13 +178,63 @@
     }
 
     .login-link a {
-        color: #2563eb;
+        color: #3b82f6;
         text-decoration: none;
-        font-size: 0.875rem;
+        font-size: 0.95rem;
+        font-weight: 500;
+        transition: color 0.15s ease;
     }
 
     .login-link a:hover {
+        color: #1d4ed8;
         text-decoration: underline;
     }
 </style>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        const password = document.getElementById("password");
+        const confirm_password = document.getElementById("confirm_password");
+        const match_msg = document.getElementById("password_match_msg");
+        const form = document.querySelector(".register-form");
+
+        function validatePassword() {
+            if (confirm_password.value === "") {
+                confirm_password.setCustomValidity("");
+                match_msg.textContent = "";
+                match_msg.style.color = "";
+                confirm_password.style.borderColor = "";
+            } else if (password.value !== confirm_password.value) {
+                confirm_password.setCustomValidity("Las contraseñas no coinciden");
+                match_msg.textContent = "Las contraseñas no coinciden";
+                match_msg.style.color = "#dc2626"; // red-600
+                confirm_password.style.borderColor = "#dc2626";
+            } else {
+                confirm_password.setCustomValidity("");
+                match_msg.textContent = "Las contraseñas coinciden";
+                match_msg.style.color = "#16a34a"; // green-600
+                confirm_password.style.borderColor = "#16a34a";
+            }
+        }
+
+        password.addEventListener("input", validatePassword);
+        confirm_password.addEventListener("input", validatePassword);
+
+        // Formateo del RUT
+        const rutInput = document.getElementById("rut");
+        rutInput.addEventListener("blur", function() {
+            let value = this.value.replace(/[^0-9kK]/g, ""); // Elimina todo excepto números y k/K
+            if (value.length > 1) {
+                // Separa dígito verificador y cuerpo
+                const rutBody = value.slice(0, -1);
+                const rutDv = value.slice(-1);
+                
+                // Agrega puntos al cuerpo
+                let formattedBody = rutBody.replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+                
+                this.value = formattedBody + "-" + rutDv;
+            }
+        });
+    });
+</script>
 {% endblock %}

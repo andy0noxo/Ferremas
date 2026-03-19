@@ -25,7 +25,7 @@ const userValidations = [
       }
     }),
   body('rut')
-    .matches(/^[0-9]{7,8}-[0-9kK]$/)
+    .matches(/^([0-9]{7,8}|[0-9]{1,2}(\.[0-9]{3}){2})-[0-9kK]$/)
     .withMessage('RUT inválido'),
   body('contrasena')
     .isStrongPassword({
@@ -40,13 +40,25 @@ const userValidations = [
 const productValidations = [
   body('nombre').isLength({ min: 3, max: 100 }),
   body('precio').isFloat({ min: 1 }),
-  body('marca_id').isInt().custom(async value => {
-    const exists = await db.Marca.findByPk(value);
-    if (!exists) throw new Error('Marca no existe');
+  
+  body('marca_id').optional({ nullable: true, checkFalsy: true }).isInt().custom(async (value, { req }) => {
+    if (!value && !req.body.nueva_marca) {
+      throw new Error('Debe proporcionar marca_id o nueva_marca');
+    }
+    if (value) {
+      const exists = await db.Marca.findByPk(value);
+      if (!exists) throw new Error('Marca no existe');
+    }
   }),
-  body('categoria_id').isInt().custom(async value => {
-    const exists = await db.Categoria.findByPk(value);
-    if (!exists) throw new Error('Categoría no existe');
+  
+  body('categoria_id').optional({ nullable: true, checkFalsy: true }).isInt().custom(async (value, { req }) => {
+    if (!value && !req.body.nueva_categoria) {
+      throw new Error('Debe proporcionar categoria_id o nueva_categoria');
+    }
+    if (value) {
+      const exists = await db.Categoria.findByPk(value);
+      if (!exists) throw new Error('Categoría no existe');
+    }
   })
 ];
 
