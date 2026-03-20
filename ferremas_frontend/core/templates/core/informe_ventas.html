@@ -14,6 +14,7 @@
                 <label for="sucursal">🏢 Sucursal:</label>
                 <select name="sucursal" id="sucursal" required class="form-control">
                     <option value="">Seleccione Sucursal</option>
+                    <option value="todas" {% if selected_sucursal == 'todas' %}selected{% endif %}>Todas las Sucursales</option>
                     {% for suc in sucursales %}
                         <option value="{{ suc.id }}" {% if selected_sucursal == suc.id|stringformat:'s' %}selected{% endif %}>{{ suc.nombre }}</option>
                     {% endfor %}
@@ -85,6 +86,88 @@
                     <span class="label">📦 Cantidad Pedidos</span>
                     <span class="value">{{ informe.cantidadPedidos }}</span>
                 </div>
+            </div>
+        </div>
+
+        {% if informe.metricas.topSucursales %}
+        <div class="report-breakdown">
+            <h4>🏆 Sucursales Más Vendidas</h4>
+            <div class="table-responsive">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Sucursal</th>
+                            <th>Cantidad Pedidos</th>
+                            <th>Total Generado</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for suc in informe.metricas.topSucursales %}
+                        <tr>
+                            <td>{{ suc.nombre }}</td>
+                            <td>{{ suc.cantidad }}</td>
+                            <td>${{ suc.total }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        {% endif %}
+
+        <div class="report-breakdown">
+            <h4>📈 Productos Más Vendidos</h4>
+            <div class="table-responsive">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Producto</th>
+                            <th>Cantidad Vendida</th>
+                            <th>Total Generado</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for prod in informe.metricas.topProductos %}
+                        <tr>
+                            <td>{{ prod.nombre }}</td>
+                            <td>{{ prod.cantidad }}</td>
+                            <td>${{ prod.total }}</td>
+                        </tr>
+                        {% empty %}
+                        <tr><td colspan="3">No hay datos de productos.</td></tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="report-breakdown">
+            <h4>📋 Detalle de Pedidos</h4>
+            <div class="table-responsive">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>ID Pedido</th>
+                            <th>Fecha y Hora</th>
+                            <th>Cliente</th>
+                            <th>Método Pago</th>
+                            <th>Total</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for pedido in informe.pedidos %}
+                        <tr>
+                            <td>#{{ pedido.id }}</td>
+                            <td>{{ pedido.fecha_pedido|date:"d/m/Y H:i:s" }}</td>
+                            <td>{{ pedido.usuario.nombre }} ({{ pedido.usuario.email }})</td>
+                            <td>{{ pedido.pago.metodo|default:"N/A"|title }}</td>
+                            <td>${{ pedido.total }}</td>
+                        </tr>
+                        {% empty %}
+                        <tr><td colspan="5">No se encontraron pedidos en este periodo.</td></tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
             </div>
         </div>
 

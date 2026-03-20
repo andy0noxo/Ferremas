@@ -28,10 +28,14 @@
                     
                     <td><span class="badg badge-{{ pedido.estado|default:'pendiente'|lower }}">{{ pedido.estado|default:"Pendiente"|title }}</span></td>
                     <td>
-                        {% if pedido.sucursal_retiro or pedido.sucursal %}
-                            Retiro en Tienda{% if pedido.sucursal %} ({{ pedido.sucursal.nombre }}){% endif %}
+                        {% if pedido.direccion_envio %}
+                            <div style="font-weight: 600; color: #4f46e5;">Despacho a Domicilio</div>
+                            <small style="color: #64748b; display: block; max-width: 200px;">{{ pedido.direccion_envio|truncatechars:30 }}</small>
                         {% else %}
-                            Despacho a Domicilio
+                            <div style="font-weight: 600; color: #059669;">Retiro en Tienda</div>
+                            {% if pedido.sucursal %}
+                                <small style="color: #64748b;">Sucursal: {{ pedido.sucursal.nombre }}</small>
+                            {% endif %}
                         {% endif %}
                     </td>
                     <td>${{ pedido.total|floatformat:0 }}</td>

@@ -110,22 +110,94 @@ exports.informeVentasGenerico = async (req, res, next) => {
       return res.status(400).json({ message: 'Periodo no valido' });
     }
 
+    const whereClause = {
+      fecha_pedido: { [db.Sequelize.Op.gte]: inicio, [db.Sequelize.Op.lt]: fin },
+      estado: { [db.Sequelize.Op.not]: 'rechazado' }
+    };
+
+    if (sucursalId !== 'todas') {
+      whereClause.sucursal_retiro = sucursalId;
+    }
+
     const ventas = await db.Pedido.findAll({
-      where: {
-        sucursal_retiro: sucursalId,
-        fecha_pedido: { [db.Sequelize.Op.gte]: inicio, [db.Sequelize.Op.lt]: fin },
-        estado: { [db.Sequelize.Op.not]: 'rechazado' }
-      },
+      where: whereClause,
       include: [
         { model: db.Sucursal, as: 'sucursal', attributes: ['id', 'nombre'] },
-        { model: db.Usuario, as: 'usuario', attributes: ['id', 'nombre'] }
+        { model: db.Usuario, as: 'usuario', attributes: ['id', 'nombre', 'email'] },
+        { model: db.Pago, as: 'pago' }, // Incluir información de pago
+        { 
+          model: db.DetallePedido, 
+          as: 'detalles',
+          include: [{ model: db.Producto, as: 'producto' }] // Incluir producto en los detalles
+        }
       ]
     });
     
+    // Calcular métricas
     const totalVentas = ventas.reduce((acc, v) => acc + (v.total || 0), 0);
+    
+    // Top Sucursales (solo si se seleccionan todas)
+    let topSucursales = [];
+    if (sucursalId === 'todas') {
+      const sucursalesMap = {};
+      ventas.forEach(v => {
+        const sid = v.sucursal_retiro || 'despacho';
+        const snombre = v.sucursal ? v.sucursal.nombre : (v.direccion_envio ? 'Despacho a Domicilio' : 'Sucursal Desconocida');
+        
+        if (!sucursalesMap[sid]) {
+          sucursalesMap[sid] = { nombre: snombre, cantidad: 0, total: 0 };
+        }
+        sucursalesMap[sid].cantidad++;
+        sucursalesMap[sid].total += v.total;
+      });
+      
+      topSucursales = Object.values(sucursalesMap)
+        .sort((a, b) => b.total - a.total);
+    }
+
+    // Desglose de métodos de pago
+    const metodosPago = {};
+    ventas.forEach(v => {
+      const metodo = v.pago ? v.pago.metodo : 'Desconocido';
+      if (!metodosPago[metodo]) metodosPago[metodo] = { cantidad: 0, total: 0 };
+      metodosPago[metodo].cantidad++;
+      metodosPago[metodo].total += v.total;
+    });
+
+    // Productos más vendidos
+    const productosVendidos = {};
+    ventas.forEach(v => {
+      if (v.detalles) {
+        v.detalles.forEach(d => {
+          const pid = d.producto ? d.producto.id : Math.random().toString(36).substr(2, 9); // Fallback ID
+          const pnombre = d.producto ? d.producto.nombre : 'Producto Desconocido';
+          
+          if (!productosVendidos[pid]) {
+            productosVendidos[pid] = { 
+              nombre: pnombre, 
+              cantidad: 0, 
+              total: 0 
+            };
+          }
+          productosVendidos[pid].cantidad += d.cantidad;
+          productosVendidos[pid].total += (d.cantidad * d.precio_unitario);
+        });
+      }
+    });
+    
+    // Convertir a array y ordenar
+    const topProductos = Object.values(productosVendidos)
+      .sort((a, b) => b.cantidad - a.cantidad)
+      .slice(0, 5); // Top 5
+
 
     // Get sucursal info even if empty
-    const sucursalInfo = await db.Sucursal.findByPk(sucursalId, { attributes: ['id', 'nombre'] });
+    let sucursalInfo;
+    if (sucursalId === 'todas') {
+      sucursalInfo = { id: 'todas', nombre: 'Todas las Sucursales' };
+    } else {
+      sucursalInfo = await db.Sucursal.findByPk(sucursalId, { attributes: ['id', 'nombre'] });
+    }
 
     res.json({
       sucursal: sucursalInfo,
@@ -133,7 +205,12 @@ exports.informeVentasGenerico = async (req, res, next) => {
       periodo,
       totalVentas,
       cantidadPedidos: ventas.length,
-      pedidos: ventas
+      pedidos: ventas,
+      metricas: {
+        metodosPago,
+        topProductos,
+        topSucursales
+      }
     });
   } catch (error) {
     next(error);

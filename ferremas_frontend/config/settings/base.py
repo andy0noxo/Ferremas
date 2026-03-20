@@ -29,18 +29,19 @@ ALLOWED_HOSTS = ['localhost', '127.0.0.1'] if DEBUG else []
 # Django apps for frontend-only configuration
 DJANGO_APPS = [
     # 'django.contrib.admin',        # Disabled - no database admin needed
-    # 'django.contrib.auth',         # Disabled - using API authentication
+    'django.contrib.auth',         # Disabled - using API authentication
     'django.contrib.contenttypes',
     'django.contrib.sessions',      # Needed for session-based auth with API
     'django.contrib.messages',      # Needed for user feedback
+    'django.contrib.humanize',      # Needed for currency formatting (intcomma)
     'django.contrib.staticfiles',   # Needed for CSS/JS/images
 ]
 
 LOCAL_APPS = [
     'core',
-    # 'usuarios',    # Disabled - users managed by Node.js backend
-    # 'productos',   # Disabled - products managed by Node.js backend  
-    # 'pedidos',     # Disabled - orders managed by Node.js backend
+    'usuarios',    # Frontend templates/views for users
+    'productos',   # Frontend templates/views for products
+    'pedidos',     # Frontend templates/views for orders
 ]
 
 THIRD_PARTY_APPS = [
@@ -60,7 +61,7 @@ MIDDLEWARE = [
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
-    # 'django.contrib.auth.middleware.AuthenticationMiddleware',  # Disabled - using API auth
+    'django.contrib.auth.middleware.AuthenticationMiddleware',  # Disabled - using API auth
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     # Custom middleware
@@ -87,7 +88,7 @@ TEMPLATES = [
             'context_processors': [
                 'django.template.context_processors.debug',
                 'django.template.context_processors.request',
-                # 'django.contrib.auth.context_processors.auth',  # Disabled - using API auth
+                'django.contrib.auth.context_processors.auth',  # Disabled - using API auth
                 'django.contrib.messages.context_processors.messages',
                 'django.template.context_processors.static',
                 'django.template.context_processors.media',
@@ -112,10 +113,10 @@ DATABASES = {
 # ============================================================================
 # AUTHENTICATION CONFIGURATION
 # ============================================================================
-# Authentication handled via Node.js backend API
-# No local Django user model needed
+# Authentication
+# ============================================================================
 
-# AUTH_USER_MODEL = 'usuarios.Usuario'  # Disabled - using API auth
+AUTH_USER_MODEL = 'usuarios.Usuario'  # Required since usuarios.models.Usuario inherits AbstractUser
 
 AUTH_PASSWORD_VALIDATORS = [
     {
@@ -146,8 +147,18 @@ LOGOUT_REDIRECT_URL = '/'
 
 LANGUAGE_CODE = 'es-cl'
 TIME_ZONE = 'America/Santiago'
+# ============================================================================
+# REGIONAL SETTINGS
+# ============================================================================
+
+LANGUAGE_CODE = 'es-cl'
+TIME_ZONE = 'America/Santiago'
 USE_I18N = True
 USE_TZ = True
+USE_L10N = True
+USE_THOUSAND_SEPARATOR = True
+THOUSAND_SEPARATOR = '.'
+DECIMAL_SEPARATOR = ','
 
 # ============================================================================
 # STATIC FILES CONFIGURATION

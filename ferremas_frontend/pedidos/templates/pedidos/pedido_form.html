@@ -48,8 +48,9 @@
         <!-- Columna Derecha: Opciones de Entrega -->
         <div class="delivery-options">
             <h3>Opciones de Entrega</h3>
-            <form method="post" action="{% url 'pedidos:pedido_crear' %}">
+            <form method="post" action="{% url 'pedidos:pedido_crear' %}" id="checkout-form">
                 {% csrf_token %}
+                <input type="hidden" name="costo_envio" id="costo_envio_input" value="0">
                 
                 <div class="delivery-selector">
                     <div class="option" onclick="document.getElementById('retiro').checked=true; updateUI();">
@@ -63,7 +64,7 @@
                         <input type="radio" id="despacho" name="tipo_entrega" value="despacho">
                         <label for="despacho">
                             <strong>Despacho a Domicilio</strong>
-                            <span class="price">+$5.000</span>
+                            <span class="price" id="delivery-price-label">Por calcular</span>
                         </label>
                     </div>
                 </div>
@@ -83,22 +84,24 @@
                 <div id="despacho-form" class="delivery-form-section" style="display:none;">
                     <div class="form-group">
                         <label>Región:</label>
-                        <select name="region" id="region" class="form-control" onchange="updateComunas()">
+                        <select name="region" id="region" class="form-control" onchange="updateComunas(); calculateShipping();">
                             <option value="">Seleccione Región</option>
                             <option value="RM">Metropolitana</option>
                             <option value="V">Valparaíso</option>
+                            <option value="VIII">Biobío</option>
                         </select>
                     </div>
                     <div class="form-group">
                         <label>Comuna:</label>
-                        <select name="comuna" id="comuna" class="form-control">
+                        <select name="comuna" id="comuna" class="form-control" onchange="calculateShipping();">
                             <option value="">Seleccione Comuna</option>
                         </select>
                     </div>
                     <div class="form-group">
                         <label>Dirección:</label>
-                        <input type="text" name="direccion" id="direccion" class="form-control" placeholder="Ej: Av. Principal 123">
+                        <input type="text" name="direccion" id="direccion" class="form-control" placeholder="Ej: Av. Principal 123" onblur="calculateShipping()">
                     </div>
+                    <div id="delivery-info" style="margin-top: 10px; font-size: 0.9em; color: #666;"></div>
                 </div>
 
                 <button type="submit" class="btn-pay">Ir a Pagar con Webpay</button>
@@ -108,8 +111,82 @@
 </div>
 
 <script>
-    const subtotal = {{ subtotal }};
-    const shippingCost = 5000;
+    const subtotal = {{ subtotal|stringformat:"d" }}; // Ensure integer
+    let shippingCost = 0;
+
+    const comunas = {
+        'RM': [
+            'Santiago', 'Providencia', 'Las Condes', 'Maipú', 'Puente Alto', 'La Florida', 'Ñuñoa', 
+            'Vitacura', 'Lo Barnechea', 'Renca', 'Quilicura', 'Pudahuel', 'San Bernardo', 'Peñalolén', 
+            'La Reina', 'Macul', 'Estación Central', 'Independencia', 'Recoleta', 'La Cisterna', 
+            'San Miguel', 'San Joaquín', 'La Granja', 'El Bosque', 'Pedro Aguirre Cerda', 'Lo Espejo', 
+            'Cerrillos', 'Quinta Normal', 'Cerro Navia', 'Lo Prado'
+        ],
+        'V': [
+            'Valparaíso', 'Viña del Mar', 'Concón', 'Quilpué', 'Villa Alemana', 'Limache', 'Olmué', 
+            'Quillota', 'La Calera', 'La Cruz', 'San Antonio', 'Cartagena', 'El Tabo', 'El Quisco', 
+            'Algarrobo', 'Santo Domingo', 'Casablanca', 'Los Andes', 'San Felipe'
+        ],
+        'VIII': [
+            'Concepción', 'Talcahuano', 'San Pedro de la Paz', 'Chiguayante', 'Coronel', 'Lota', 
+            'Tomé', 'Hualpén', 'Los Ángeles', 'Penco'
+        ]
+    };
+
+    function updateComunas() {
+        const region = document.getElementById('region').value;
+        const comunaSelect = document.getElementById('comuna');
+        comunaSelect.innerHTML = '<option value="">Seleccione Comuna</option>';
+        
+        if (comunas[region]) {
+            comunas[region].forEach(c => {
+                const opt = document.createElement('option');
+                opt.value = c;
+                opt.textContent = c;
+                comunaSelect.appendChild(opt);
+            });
+        }
+    }
+
+    function calculateShipping() {
+        const isDespacho = document.getElementById('despacho').checked;
+        const region = document.getElementById('region').value;
+        const comuna = document.getElementById('comuna').value;
+        const direccion = document.getElementById('direccion').value;
+        const infoDiv = document.getElementById('delivery-info');
+        
+        if (isDespacho && region && comuna && direccion) {
+            // Simular cálculo de distancia interna
+            // Usamos un hash simple de la dirección para generar una "distancia" determinista
+            const str = region + comuna + direccion;
+            let hash = 0;
+            for (let i = 0; i < str.length; i++) {
+                hash = ((hash << 5) - hash) + str.charCodeAt(i);
+                hash |= 0; 
+            }
+            const seed = Math.abs(hash);
+            
+            // Distancia aleatoria entre 1km y 50km
+            const distanceKm = (seed % 49) + 1; 
+            
+            // Calculo de costo: Base $2000 + $150 por Km
+            const basePrice = 2000;
+            const pricePerKm = 150;
+            const calculatedPrice = Math.round((basePrice + (distanceKm * pricePerKm)) / 10) * 10;
+            
+            shippingCost = calculatedPrice;
+            
+            infoDiv.innerHTML = `
+                <p>📍 Distancia calculada a sucursal más cercana: <strong>${distanceKm} km</strong>.</p>
+                <p>🚚 Costo de envío calculado: <strong>$${formatNumber(shippingCost)}</strong></p>
+            `;
+        } else {
+            shippingCost = 0;
+            infoDiv.innerHTML = '';
+        }
+        
+        updateUI();
+    }
 
     function updateUI() {
         const isDespacho = document.getElementById('despacho').checked;
@@ -117,6 +194,8 @@
         const despachoForm = document.getElementById('despacho-form');
         const shippingEl = document.getElementById('shipping-display');
         const totalEl = document.getElementById('total-display');
+        const labelPrice = document.getElementById('delivery-price-label');
+        const hiddenInput = document.getElementById('costo_envio_input');
         
         const sucursalInput = document.getElementById('sucursal_id');
         const regionInput = document.getElementById('region');
@@ -127,7 +206,16 @@
             retiroForm.style.display = 'none';
             despachoForm.style.display = 'block';
             
-            shippingEl.textContent = '$' + formatNumber(shippingCost);
+            if (shippingCost > 0) {
+                labelPrice.textContent = '+$' + formatNumber(shippingCost);
+                shippingEl.textContent = '$' + formatNumber(shippingCost);
+                hiddenInput.value = shippingCost;
+            } else {
+                labelPrice.textContent = 'Por calcular';
+                shippingEl.textContent = '$0';
+                hiddenInput.value = 0;
+            }
+            
             totalEl.textContent = '$' + formatNumber(subtotal + shippingCost);
             
             sucursalInput.required = false;
@@ -138,8 +226,10 @@
             retiroForm.style.display = 'block';
             despachoForm.style.display = 'none';
             
+            shippingCost = 0;
             shippingEl.textContent = '$0';
             totalEl.textContent = '$' + formatNumber(subtotal);
+            hiddenInput.value = 0;
             
             sucursalInput.required = true;
             regionInput.required = false;
@@ -147,6 +237,12 @@
             direccionInput.required = false;
         }
     }
+
+    // Helper para formatear numeros
+    function formatNumber(num) {
+        return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+    }
+</script>
 
     function formatNumber(num) {
         return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".");

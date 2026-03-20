@@ -43,16 +43,37 @@ exports.findAll = async (req, res, next) => {
     }
     // Conversión CLP/USD
     let clpToUsdRate = 0;
+    let isDirectRate = false; // True if rate is already multiplier (USD per CLP)
+
     try {
       clpToUsdRate = await ExchangeRateHostService.getCurrentRate();
+      isDirectRate = true; // ExchangeRateHost returns USD per CLP (e.g. 0.001)
     } catch (e) {
-      clpToUsdRate = await DollarService.getCurrentDollar();
+      try {
+        clpToUsdRate = await DollarService.getCurrentDollar();
+        isDirectRate = false; // DollarService returns CLP per USD (e.g. 950)
+      } catch (err) {
+        clpToUsdRate = 0;
+      }
     }
-    const productsWithDollar = productos.map(producto => ({
-      ...producto.toJSON(),
-      precio_clp: producto.precio,
-      precio_usd: clpToUsdRate ? (producto.precio / clpToUsdRate) : null
-    }));
+
+    const productsWithDollar = productos.map(producto => {
+      let precioUsd = null;
+      if (clpToUsdRate) {
+        if (isDirectRate) {
+          precioUsd = producto.precio * clpToUsdRate;
+        } else {
+          precioUsd = producto.precio / clpToUsdRate; // Avoid division by zero handled by if check
+        }
+      }
+      
+      return {
+        ...producto.toJSON(),
+        precio_clp: producto.precio,
+        precio_usd: precioUsd
+      };
+    });
+    
     res.json(productsWithDollar);
   } catch (error) {
     next(error);

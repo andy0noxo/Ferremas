@@ -8,7 +8,11 @@ const ROLES = require('../config/roles.config');
 const router = express.Router();
 
 // Obtener todo el stock general
-router.get('/', verifyToken, checkRole([ROLES.ADMIN, ROLES.BODEGUERO, ROLES.VENDEDOR]), stockController.obtenerStockGeneral);
+router.get('/', 
+    verifyToken, 
+    checkRole([ROLES.ADMIN, ROLES.BODEGUERO, ROLES.VENDEDOR, ROLES.CONTADOR]), // Contadores pueden ver stock
+    stockController.obtenerStockGeneral
+);
 
 // Actualizar stock de un producto en una sucursal
 router.put('/:productoId/sucursal/:sucursalId',

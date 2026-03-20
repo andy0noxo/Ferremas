@@ -149,13 +149,131 @@ def dashboard_view(request):
     if rol == 'Administrador':
         return render(request, 'core/dashboard_admin.html', {'user': user})
     elif rol == 'Vendedor':
-        return render(request, 'core/dashboard_vendedor.html', {'user': user})
+        # Dashboard Vendedor: Resumen de ventas y tareas
+        response = api_request('get', '/api/pedidos', request)
+        pedidos = response.json() if response and response.status_code == 200 else []
+        
+        # Filtrar pedidos relevantes (ej: pendientes de la sucursal del vendedor sería ideal, pero por ahora todos)
+        pendientes = [p for p in pedidos if p.get('estado') == 'pendiente']
+        fecha_hoy = datetime.now().strftime('%Y-%m-%d')
+        pedidos_hoy = sum(1 for p in pedidos if p.get('fecha_pedido', '').startswith(fecha_hoy))
+        
+        # Calcular ventas del mes actual (simple)
+        mes_actual = datetime.now().strftime('%Y-%m')
+        ventas_mes = sum(1 for p in pedidos if p.get('fecha_pedido', '').startswith(mes_actual) and p.get('estado') == 'aprobado')
+
+        context = {
+            'user': user,
+            'recent_orders': pendientes[:5], # Mostrar primeros 5 pendientes para acción rápida
+            'stats': {
+                'pedidos_hoy': pedidos_hoy,
+                'pendientes': len(pendientes),
+                'ventas_mes': ventas_mes
+            }
+        }
+        return render(request, 'core/dashboard_vendedor.html', context)
     elif rol == 'Bodeguero':
-        return render(request, 'core/dashboard_bodeguero.html', {'user': user})
+        # Dashboard Bodeguero: Gestión de Inventario y Pedidos
+        # 1. Pedidos
+        response_pedidos = api_request('get', '/api/pedidos', request)
+        pedidos = response_pedidos.json() if response_pedidos and response_pedidos.status_code == 200 else []
+        
+        # Filtrar pedidos relevantes para bodega
+        # 'aprobado' -> Pendiente de preparación
+        # 'preparado' -> Listo para entrega/despacho
+        por_preparar = [p for p in pedidos if p.get('estado') == 'aprobado']
+        listos_entrega = [p for p in pedidos if p.get('estado') == 'preparado']
+        
+        # 2. Stock Crítico
+        response_stock = api_request('get', '/api/stock', request)
+        stock_list = response_stock.json() if response_stock and response_stock.status_code == 200 else []
+        
+        # Filtrar stock bajo (ej: < 20 unidades)
+        stock_critico = []
+        # Obtener ID de sucursal desde el objeto 'sucursal' en la sesión del usuario
+        user_sucursal = user.get('sucursal')
+        user_sucursal_id = user_sucursal.get('id') if isinstance(user_sucursal, dict) else None
+        
+        for item in stock_list:
+            # Si el bodeguero tiene sucursal asignada, filtrar por ella. Si no, mostrar todo global.
+            stock_sucursal_id = item.get('sucursal', {}).get('id')
+            if user_sucursal_id and str(stock_sucursal_id) != str(user_sucursal_id):
+                continue
+            
+            if item.get('cantidad', 0) < 20: # Umbral de alerta
+                stock_critico.append(item)
+        
+        # Ordenar por cantidad ascendente (más críticos primero)
+        stock_critico.sort(key=lambda x: x.get('cantidad', 0))
+
+        context = {
+            'user': user,
+            'pedidos_preparar': por_preparar[:5], # Mostrar top 5 más antiguos
+            'stock_critico': stock_critico[:5],   # Mostrar top 5 más críticos
+            'stats': {
+                'por_preparar': len(por_preparar),
+                'listos_entrega': len(listos_entrega),
+                'alertas_stock': len(stock_critico)
+            }
+        }
+        return render(request, 'core/dashboard_bodeguero.html', context)
     elif rol == 'Contador':
-        return render(request, 'core/dashboard_contador.html', {'user': user})
+        # Dashboard Contador: Resumen Financiero y Reportes
+        response_pedidos = api_request('get', '/api/pedidos', request)
+        pedidos = response_pedidos.json() if response_pedidos and response_pedidos.status_code == 200 else []
+
+        # Calcular totales
+        mes_actual = datetime.now().strftime('%Y-%m')
+        
+        # Filtrar pedidos del mes que representan ventas (pagados/aprobados/entregados/despachados/preparados)
+        ventas_validas = [
+            p for p in pedidos 
+            if p.get('fecha_pedido', '').startswith(mes_actual) 
+            and p.get('estado') not in ['pendiente', 'rechazado']
+        ]
+
+        total_ventas_mes = sum(float(p.get('total', 0)) for p in ventas_validas)
+        cantidad_ventas = len(ventas_validas)
+        ticket_promedio = total_ventas_mes / cantidad_ventas if cantidad_ventas > 0 else 0
+
+        # Pedidos pendientes de pago (estado 'pendiente')
+        pendientes_pago = [p for p in pedidos if p.get('estado') == 'pendiente']
+        
+        # Últimas ventas aprobadas (para tabla)
+        ultimas_ventas = [p for p in pedidos if p.get('estado') == 'aprobado'][:5]
+
+        context = {
+            'user': user,
+            'ultimas_ventas': ultimas_ventas,
+            'pendientes_pago': pendientes_pago[:5],
+            'stats': {
+                'total_ventas_mes': total_ventas_mes,
+                'cantidad_ventas': cantidad_ventas,
+                'ticket_promedio': ticket_promedio,
+                'pendientes_count': len(pendientes_pago)
+            }
+        }
+        return render(request, 'core/dashboard_contador.html', context)
     else:
-        return render(request, 'core/dashboard_cliente.html', {'user': user})
+        # Dashboard Cliente: Cargar resumen de pedidos
+        response = api_request('get', '/api/pedidos/usuario', request)
+        pedidos = response.json() if response and response.status_code == 200 else []
+        
+        # Calcular estadísticas básicas
+        ultimos_pedidos = pedidos[:5] # Mostrar max 5 recientes
+        pendientes = sum(1 for p in pedidos if p.get('estado') == 'pendiente')
+        aprobados = sum(1 for p in pedidos if p.get('estado') == 'aprobado')
+        
+        context = {
+            'user': user,
+            'recent_orders': ultimos_pedidos,
+            'stats': {
+                'total': len(pedidos),
+                'pendientes': pendientes,
+                'aprobados': aprobados
+            }
+        }
+        return render(request, 'core/dashboard_cliente.html', context)
 
 def productos_list(request):
     user = request.session.get('user')
@@ -275,7 +393,7 @@ def producto_crear(request):
 
 def producto_editar(request, producto_id):
     user = request.session.get('user')
-    if not user or user.get('rol') not in ['Administrador', 'Bodeguero']:
+    if not user or user.get('rol') not in ['Administrador', 'Bodeguero', 'Vendedor']:
         messages.error(request, 'No autorizado.')
         return redirect('core:productos_list')
     response = api_request('get', f'/api/productos/{producto_id}', request)
@@ -429,7 +547,7 @@ def usuario_eliminar(request, usuario_id):
 
 def stock_general(request):
     user = request.session.get('user')
-    if not user or user.get('rol') not in ['Administrador', 'Bodeguero', 'Vendedor']:
+    if not user or user.get('rol') not in ['Administrador', 'Bodeguero', 'Vendedor', 'Contador']:
         messages.error(request, 'No autorizado.')
         return redirect('core:dashboard')
     
@@ -446,6 +564,9 @@ def stock_general(request):
 
     # 2. Procesar formulario de actualización
     if request.method == 'POST':
+        if user.get('rol') == 'Contador':
+            messages.error(request, 'No autorizado para modificar stock.')
+            return redirect('core:stock_list')
         # Pasamos productos y sucursales para que el form popule los choices
         form = StockUpdateDetailedForm(request.POST, productos=productos, sucursales=sucursales)
         if form.is_valid():

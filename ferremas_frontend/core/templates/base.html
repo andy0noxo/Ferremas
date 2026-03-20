@@ -5,12 +5,16 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}Ferremas{% endblock %}</title>
+    <link rel="icon" type="image/png" href="{% static 'img/Logo_Ferremas.png' %}">
     <link rel="stylesheet" href="{% static 'css/styles.css' %}">
 </head>
 <body>
     <header>
         <div class="header-content">
-            <h1><a href="{% url 'core:home' %}" class="logo-link">Ferremas</a></h1>
+            <h1><a href="{% url 'core:home' %}" class="logo-link">
+                <img src="{% static 'img/Logo_Ferremas.png' %}" alt="Ferremas Logo" style="height: 50px; vertical-align: middle; margin-right: 10px;">
+                Ferremas
+            </a></h1>
             <nav class="main-nav">
                 {% if not hide_user_info %}
                     {% if user %}
@@ -45,6 +49,7 @@
                 {% elif user.rol == 'Contador' %}
                     <li><a href="{% url 'pedidos:pedidos_list' %}">Pedidos</a></li>
                     <li><a href="{% url 'core:stock_list' %}">Stock</a></li>
+                    <li><a href="{% url 'core:informe_ventas' %}">Informe Ventas</a></li>
                 {% elif user.rol == 'Vendedor' %}
                     <li><a href="{% url 'pedidos:pedidos_list' %}">Pedidos</a></li>
                     <li><a href="{% url 'core:productos_list' %}">Productos</a></li>
@@ -87,7 +92,7 @@
 
     /* Header styles */
     header {
-        background-color: #1a365d;
+        background-color: var(--header-bg);
         color: white;
         padding: 1rem;
     }
@@ -112,7 +117,7 @@
         margin: 1rem auto 0 auto;
         border-top: 1px solid rgba(255, 255, 255, 0.2);
         padding-top: 0.5rem;
-    }
+    } 
 
     .role-nav-list {
         display: flex;
@@ -151,7 +156,7 @@
     }
 
     .nav-link:hover {
-        background-color: #2d4a8c;
+        background-color: rgba(255, 255, 255, 0.1);
     }
 
     .user-info {
@@ -181,26 +186,26 @@
     }
 
     .error {
-        background-color: #fee2e2;
-        color: #991b1b;
-        border: 1px solid #fecaca;
+        background-color: var(--error-bg);
+        color: var(--error-text);
+        border: 1px solid var(--error-border);
     }
 
     .success {
-        background-color: #dcfce7;
-        color: #166534;
-        border: 1px solid #bbf7d0;
+        background-color: var(--success-bg);
+        color: var(--success-text);
+        border: 1px solid var(--success-border);
     }
 
     .info {
-        background-color: #dbeafe;
-        color: #1e40af;
-        border: 1px solid #bfdbfe;
+        background-color: var(--info-bg);
+        color: var(--info-text);
+        border: 1px solid var(--info-border);
     }
 
     /* Footer */
     footer {
-        background-color: #f3f4f6;
+        background-color: var(--footer-bg);
         padding: 1rem;
         text-align: center;
         margin-top: auto;

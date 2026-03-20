@@ -120,26 +120,121 @@ INSERT INTO Rol (nombre) VALUES
 
 -- VERIFICAR Y PROBAR
 -- Datos de Prueba
+
+-- Sucursal
 INSERT INTO Sucursal (nombre, direccion) VALUES 
-('Sucursal Santiago Centro', 'Av. Libertador 1000, Santiago');
+('Sucursal Santiago, La Florida', 'Froilán Roa 7107, 8240000 La Florida, Región Metropolitana');
 INSERT INTO Sucursal (nombre, direccion) VALUES 
-('Sucursal Santiago Centro2', 'Av. Libertador 1000, Santiago2');
+('Sucursal Valparaíso', 'Pedro Montt 1881, 2362936 Valparaíso');
+
+-- Marca
+INSERT INTO Marca (nombre) VALUES ('Bauker');
+INSERT INTO Marca (nombre) VALUES ('Makita');
+INSERT INTO Marca (nombre) VALUES ('Black+decker');
+INSERT INTO Marca (nombre) VALUES ('Lernen');
+INSERT INTO Marca (nombre) VALUES ('Ubermann');
+INSERT INTO Marca (nombre) VALUES ('Dewalt');
+INSERT INTO Marca (nombre) VALUES ('Brooklyn');
+INSERT INTO Marca (nombre) VALUES ('Total tools');
 INSERT INTO Marca (nombre) VALUES ('Bosch');
-INSERT INTO Marca (nombre) VALUES ('Bosch2');
-INSERT INTO Categoria (nombre) VALUES ('Herramientas Eléctricas');
-INSERT INTO Categoria (nombre) VALUES ('Herramientas Eléctricas2');
+INSERT INTO Marca (nombre) VALUES ('Daewoo');
+
+-- Categoria
+INSERT INTO Categoria (nombre) VALUES ('Taladros');
+INSERT INTO Categoria (nombre) VALUES ('Esmeriles');
+INSERT INTO Categoria (nombre) VALUES ('Sierras');
+INSERT INTO Categoria (nombre) VALUES ('Lijadoras');
+INSERT INTO Categoria (nombre) VALUES ('Cepillos');
+INSERT INTO Categoria (nombre) VALUES ('Fresadoras');
+INSERT INTO Categoria (nombre) VALUES ('Rotomartillos y demoledores');
+INSERT INTO Categoria (nombre) VALUES ('Pistolas de calor');
+INSERT INTO Categoria (nombre) VALUES ('Atornilladores');
+INSERT INTO Categoria (nombre) VALUES ('Accesorios de Herramientas eléctricas');
+
+-- Producto
 INSERT INTO Producto (nombre, descripcion, precio, imagen_url, marca_id, categoria_id) 
-VALUES ('Taladro X200', 'Taladro percutor 750W', 99990, 'https://sodimac.scene7.com/is/image/SodimacCL/3282216_01?wid=800&hei=800&qlt=70', 1, 1);
+VALUES ('Taladro Percutor Eléctrico 13 mm 900 W 220 V', 
+'Taladro Percutor Eléctrico 13 mm 900 W 220 V
+Dale vida a tus proyectos con el Kit Taladro Percutor Bauker ¡tu aliado perfecto para el hogar! 
+Con 73 accesorios incluidos, este taladro de 900 W y 13 mm de mandril te permitirá realizar perforaciones en concreto, metal y madera con facilidad. 
+Su diseño robusto y potente, junto a su práctico maletín, lo convierten en la herramienta ideal para cualquier trabajo, desde reparaciones menores hasta proyectos de carpintería más ambiciosos.', 
+44790, 
+'https://media.falabella.com/sodimacCL/8738599_001/w=1200,h=1200,fit=pad', 
+1,
+1);
+
 INSERT INTO Producto (nombre, descripcion, precio, imagen_url, marca_id, categoria_id) 
-VALUES ('Taladro X2002', 'Taladro percutor 750W2', 92000, 'https://sodimac.scene7.com/is/image/SodimacCL/883392X_01?wid=800&hei=800&qlt=70', 2, 2);
+VALUES ('Esmeril 4-1/2" Inalámbrico 18V + 2Bat 3,0ah + Cargador', 
+'Esmeril 4-1/2" Inalámbrico 18V + 2Bat 3,0ah + Cargador
+¡Potencia tus proyectos con el Esmeril Inalámbrico Makita! 
+Diseñado para un uso industrial, este esmeril de 4-1/2" te ofrece la libertad de trabajar sin cables y con la fuerza de 18V. 
+Incluye dos baterías de 3.0Ah y un cargador, para que nunca te quedes sin energía en el momento crucial.', 
+249990, 
+'https://media.falabella.com/sodimacCL/7857217_01/w=1200,h=1200,fit=pad', 
+2, 
+2);
+
+INSERT INTO Producto (nombre, descripcion, precio, imagen_url, marca_id, categoria_id) 
+VALUES ('Sierra Circular + Taladro Atornillador + Caladora BLACK+DECKER', 
+'INCLUYE:
+Sierra Circular 1400W BLACK+DECKER CS1004-LD008-KS501
+1 Disco de corte 18 dientes con carburo de tungsteno
+1 Guía paralela
+Taladro Atornillador Inalámbrico 8V
+1 batería integrada 1,5 Ah
+1 cargador USB 600mA
+1 punta doble phillips/estándar
+Sierra Caladora 420W
+1 Hoja para sierra', 
+99990, 
+'https://media.falabella.com/falabellaCL/119852924_01/w=1200,h=1200,fit=pad', 
+3, 
+3);
+
+INSERT INTO Producto (nombre, descripcion, precio, imagen_url, marca_id, categoria_id) 
+VALUES ('Lijadora Roto Orbital Lernen 350 W - Con Lijas De Repuesto', 
+'Características LIJADORA ROTO ORBITAL:
+- Potencia: 350 W
+- Rotación Máxima: 12.000 rpm
+- Diametro de lija: 125 mm
+- 15 lijas de repuesto
+5 unid P40
+5 unid P80
+5 unid P120
+Garantía del vendedor: 12 meses', 
+29990, 
+'https://media.falabella.com/falabellaCL/126981582_01/w=1200,h=1200,fit=pad', 
+4, 
+4);
+
+-- Stock
+INSERT INTO Stock (producto_id, sucursal_id, cantidad) 
+VALUES (1, 1, 500);
+INSERT INTO Stock (producto_id, sucursal_id, cantidad) 
+VALUES (1, 2, 500); 
+
+INSERT INTO Stock (producto_id, sucursal_id, cantidad) 
+VALUES (2, 1, 500);
+INSERT INTO Stock (producto_id, sucursal_id, cantidad) 
+VALUES (2, 2, 500);
+
+INSERT INTO Stock (producto_id, sucursal_id, cantidad) 
+VALUES (3, 1, 500);
+INSERT INTO Stock (producto_id, sucursal_id, cantidad) 
+VALUES (3, 2, 500);
+
+INSERT INTO Stock (producto_id, sucursal_id, cantidad) 
+VALUES (4, 1, 500);
+INSERT INTO Stock (producto_id, sucursal_id, cantidad) 
+VALUES (4, 2, 500);
+
+-- Usuario
 INSERT INTO Usuario (nombre, email, contrasena, rut, rol_id, sucursal_id) 
 VALUES ('Juan Pérez', 'admin@ferremas.cl', SHA2('Admin123', 256), '12345678-9', 1, 1);
-INSERT INTO Stock (producto_id, sucursal_id, cantidad) 
-VALUES (1, 1, 50);
-INSERT INTO Stock (producto_id, sucursal_id, cantidad) 
-VALUES (2, 2, 50);
+
 INSERT INTO Usuario (nombre, email, contrasena, rut, rol_id, sucursal_id) 
 VALUES ('Andrés Salcedo', 'an.salcedo@duocuc.cl', '$2b$10$0cyy79CrzmH.au6Ejt1o0OBFNiK7uqjmmicuO/N756RkC1Lx8TDV2', '19134035-3', 1, 1); -- contraseña Admin.123456789
+
 -- Verificar tablas creadas
 -- SHOW TABLES;
 -- drop table USUARIO;

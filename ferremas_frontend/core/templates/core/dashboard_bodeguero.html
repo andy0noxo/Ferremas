@@ -1,44 +1,158 @@
 {% extends 'base.html' %}
+{% load humanize %}
 {% block title %}Panel Bodeguero{% endblock %}
 
 {% block content %}
 <div class="dashboard-container">
-    <h2>Panel de Bodega</h2>
-    <p>Bienvenido, <strong>{{ user.nombre }}</strong>.</p>
-    <p>Aquí puedes gestionar pedidos, actualizar stock y revisar productos.</p>
+    <div class="header-welcome">
+        <h2>Hola, {{ user.nombre }}</h2>
+        <p class="subtitle">Panel de Gestión de Bodega</p>
+    </div>
 
+    <!-- Quick Stats -->
+    <div class="stats-grid">
+        <div class="stat-card warning">
+            <span class="stat-value">{{ stats.por_preparar|default:"0" }}</span>
+            <span class="stat-label">Por Preparar</span>
+        </div>
+        <div class="stat-card success">
+            <span class="stat-value">{{ stats.listos_entrega|default:"0" }}</span>
+            <span class="stat-label">Listos para Entrega</span>
+        </div>
+        <div class="stat-card error">
+            <span class="stat-value">{{ stats.alertas_stock|default:"0" }}</span>
+            <span class="stat-label">Alertas de Stock</span>
+        </div>
+    </div>
+
+    <h3>Herramientas de Bodega</h3>
     <div class="dashboard-grid">
-        <a href="{% url 'pedidos:pedidos_list' %}" class="dashboard-card">
-            <div class="card-icon">📦</div>
-            <h3>Gestión de Pedidos</h3>
-            <p>Ver pedidos aprobados para preparar y despachar.</p>
+        <a href="{% url 'core:stock_list' %}" class="dashboard-card">
+            <h3>🏭 Gestión de Inventario</h3>
+            <p>Controlar niveles de stock, entradas y salidas de mercancía.</p>
         </a>
 
-        <a href="{% url 'core:stock_list' %}" class="dashboard-card">
-            <div class="card-icon">🏢</div>
-            <h3>Gestión de Stock</h3>
-            <p>Visualizar y actualizar el inventario por sucursal.</p>
+        <a href="{% url 'pedidos:pedidos_list' %}?estado=aprobado" class="dashboard-card">
+            <h3>📦 Pedidos por Preparar</h3>
+            <p>Ver lista de pedidos aprobados listos para picking y packing.</p>
         </a>
 
         <a href="{% url 'core:productos_list' %}" class="dashboard-card">
-            <div class="card-icon">📋</div>
-            <h3>Catálogo de Productos</h3>
-            <p>Consultar detalles de productos en el sistema.</p>
+            <h3>🏷️ Catálogo de Productos</h3>
+            <p>Consultar información general y precios de productos.</p>
         </a>
+    </div>
+
+    <div class="recent-activity-wrapper" style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem;">
+        <!-- Pedidos Urgentes -->
+        <div class="recent-activity">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                <h3>Pedidos por Preparar</h3>
+                <a href="{% url 'pedidos:pedidos_list' %}?estado=aprobado" class="btn-link">Ver todos →</a>
+            </div>
+            
+            <table class="recent-table">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Cliente</th>
+                        <th>Fecha</th>
+                        <th>Acción</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for pedido in pedidos_preparar %}
+                    <tr>
+                        <td>#{{ pedido.id }}</td>
+                        <td>{{ pedido.usuario.nombre|default:"Cliente" }}</td>
+                        <td>{{ pedido.fecha_pedido|slice:":10" }}</td>
+                        <td><a href="{% url 'pedidos:pedido_detalle' pedido.id %}" class="btn-sm">Preparar</a></td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="4" style="text-align: center; padding: 20px; color: #64748b;">
+                            Todo al día. No hay pedidos pendientes.
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Alertas Stock -->
+        <div class="recent-activity">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                <h3>Stock Crítico (Bajo)</h3>
+                <a href="{% url 'core:stock_list' %}" class="btn-link">Gestionar Inventario →</a>
+            </div>
+            
+            <table class="recent-table">
+                <thead>
+                    <tr>
+                        <th>Producto</th>
+                        <th>Sucursal</th>
+                        <th>Cant.</th>
+                        <th>Acción</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in stock_critico %}
+                    <tr>
+                        <td title="{{ item.producto.nombre }}">{{ item.producto.nombre|truncatechars:20 }}</td>
+                        <td>{{ item.sucursal.nombre }}</td>
+                        <td><span class="badg" style="color: #991b1b; background: #fee2e2; padding: 2px 8px; border-radius: 99px; font-weight: bold; font-size: 0.8em;">{{ item.cantidad }} un.</span></td>
+                        <td><a href="{% url 'core:stock_list' %}" class="btn-sm">Reponer</a></td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="4" style="text-align: center; padding: 20px; color: #64748b;">
+                             Niveles de stock saludables.
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
     </div>
 </div>
 
 <style>
-    .dashboard-container { padding: 2rem; background-color: white; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); margin-top: 2rem; max-width: 1200px; margin-left: auto; margin-right: auto; }
-    .dashboard-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 2rem; margin-top: 2.5rem; }
+    .dashboard-container { max-width: 1200px; margin: 0 auto; padding: 2rem; background-color: var(--bg-card); border-radius: 12px; box-shadow: var(--shadow); }
+    .header-welcome { margin-bottom: 2rem; border-bottom: 1px solid var(--border-color); padding-bottom: 1rem; }
+    .header-welcome h2 { margin: 0; color: var(--text-heading); font-size: 1.8rem; }
+    .subtitle { color: var(--text-secondary); margin: 0.5rem 0 0 0; }
+
+    .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 1.5rem; margin-bottom: 2.5rem; }
+    .stat-card { background: var(--bg-menu-header); padding: 1.5rem; border-radius: 10px; text-align: center; border: 1px solid var(--border-color); }
+    .stat-value { display: block; font-size: 2rem; font-weight: bold; color: var(--text-heading); margin-bottom: 5px; }
+    .stat-label { color: var(--text-secondary); font-size: 0.9rem; font-weight: 500; text-transform: uppercase; letter-spacing: 0.05em; }
+    .stat-card.warning .stat-value { color: #d97706; }
+    .stat-card.success .stat-value { color: #059669; }
+    .stat-card.error .stat-value { color: #dc2626; }
+
+    .dashboard-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1.5rem; margin-bottom: 2.5rem; }
+    .dashboard-card { display: block; padding: 1.5rem; background-color: var(--bg-card); border: 1px solid var(--border-color); border-radius: 10px; text-decoration: none; color: var(--text-color); transition: all 0.2s ease; box-shadow: var(--shadow-sm); }
+    .dashboard-card:hover { transform: translateY(-3px); box-shadow: var(--shadow); border-color: var(--primary-color); }
+    .dashboard-card h3 { margin-top: 0; margin-bottom: 0.5rem; color: var(--text-heading); font-size: 1.25rem; display: flex; align-items: center; gap: 8px; }
+    .dashboard-card p { margin: 0; color: var(--text-secondary); font-size: 0.95rem; line-height: 1.4; }
+
+    .recent-activity h3 { margin-top: 0; color: var(--text-heading); font-size: 1.1rem; }
+    .recent-table { width: 100%; border-collapse: collapse; margin-top: 1rem; }
+    .recent-table th { text-align: left; padding: 0.75rem; background-color: var(--bg-menu-header); color: var(--text-secondary); font-weight: 600; border-bottom: 1px solid var(--border-color); font-size: 0.9rem; }
+    .recent-table td { padding: 0.75rem; border-bottom: 1px solid var(--border-color); color: var(--text-color); font-size: 0.9rem; }
+    .recent-table tr:hover { background-color: var(--bg-menu-hover); }
     
-    .dashboard-card { display: flex; flex-direction: column; align-items: center; text-align: center; padding: 2rem; background-color: white; border: 1px solid #e2e8f0; border-radius: 12px; text-decoration: none; color: #334155; transition: all 0.3s ease; height: 100%; }
-    .dashboard-card:hover { transform: translateY(-5px); box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1); border-color: #3b82f6; }
+    .btn-sm { display: inline-block; padding: 4px 12px; font-size: 0.85rem; color: var(--primary-color); background: var(--badge-cliente-bg); border-radius: 4px; text-decoration: none; font-weight: 500; }
+    .btn-sm:hover { background: var(--badge-cliente-text); color: var(--bg-card); }
     
-    .card-icon { font-size: 3rem; margin-bottom: 1rem; background: #f1f5f9; width: 80px; height: 80px; display: flex; align-items: center; justify-content: center; border-radius: 50%; }
-    .dashboard-card:hover .card-icon { background: #dbeafe; }
+    .btn-link { color: var(--primary-color); text-decoration: none; font-weight: 500; font-size: 0.95rem; }
+    .btn-link:hover { text-decoration: underline; }
+
+    @media (max-width: 768px) {
+        .recent-activity-wrapper { grid-template-columns: 1fr !important; }
+    }
     
-    .dashboard-card h3 { margin: 0 0 0.75rem 0; color: #0f172a; font-size: 1.25rem; font-weight: 600; }
-    .dashboard-card p { margin: 0; color: #64748b; font-size: 0.95rem; line-height: 1.5; }
+    .dashboard-card h3 { margin: 0 0 0.75rem 0; color: var(--text-heading); font-size: 1.25rem; font-weight: 600; }
+    .dashboard-card p { margin: 0; color: var(--text-secondary); font-size: 0.95rem; line-height: 1.5; }
 </style>
 {% endblock %}

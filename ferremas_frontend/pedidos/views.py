@@ -4,13 +4,14 @@ from core.api import api_request
 from django.contrib import messages
 from .forms import PedidoForm
 import json
+from django.conf import settings # Import missing settings
 
 def pedidos_list(request):
     user = request.session.get('user')
     if not user:
         return redirect('core:login')
     # Admin y Vendedor ven todos, Cliente ve solo los suyos
-    if user.get('rol') in ['Administrador', 'Vendedor', 'Bodeguero']:
+    if user.get('rol') in ['Administrador', 'Vendedor', 'Bodeguero', 'Contador']:
         response = api_request('get', '/api/pedidos', request)
         es_admin_o_vendedor = True
     else:
@@ -19,12 +20,18 @@ def pedidos_list(request):
         
     pedidos = response.json() if response and response.status_code == 200 else []
     
+    # Filtrar por estado si viene en query params (útil para dashboards)
+    estado_filtro = request.GET.get('estado')
+    if estado_filtro:
+        pedidos = [p for p in pedidos if p.get('estado') == estado_filtro]
+    
     # Ordenar pedidos por fecha descendente si es posible
     # (Asumiendo que la API no lo hace, aunque el controller sí lo hace)
     
     return render(request, 'pedidos/pedidos_list.html', {
         'pedidos': pedidos, 
         'user': user,
+        'estado_actual': estado_filtro,
         'es_admin_o_vendedor': es_admin_o_vendedor,
         'estados_posibles': ['pendiente', 'aprobado', 'rechazado', 'preparado', 'despachado', 'entregado']
     })
@@ -34,20 +41,30 @@ def pedido_actualizar_estado(request, pedido_id):
     rol_raw = user.get('rol') if user else None
     rol = str(rol_raw).strip() if rol_raw else ''
     
-    es_autorizado = rol in ['Administrador', 'Vendedor', 'Bodeguero'] or rol.lower() in ['administrador', 'vendedor', 'bodeguero']
+    es_staff = rol in ['Administrador', 'Vendedor', 'Bodeguero'] or rol.lower() in ['administrador', 'vendedor', 'bodeguero']
+    es_cliente = rol == 'Cliente'
 
-    if not user or not es_autorizado:
+    if not user or (not es_staff and not es_cliente):
         messages.error(request, 'No autorizado para cambiar estados de pedidos.')
         return redirect('pedidos:pedidos_list')
 
     if request.method == 'POST':
         nuevo_estado = request.POST.get('estado')
+        
+        # Validacion frontend para cliente
+        if es_cliente and nuevo_estado != 'rechazado':
+             messages.error(request, 'Clientes solo pueden cancelar pedidos.')
+             return redirect('pedidos:pedido_detalle', pedido_id=pedido_id)
+
         print(f"DEBUG: Intentando cambiar estado pedido #{pedido_id} a {nuevo_estado} por usuario {user['email']}") # Debug Log
         if nuevo_estado:
             response = api_request('put', f'/api/pedidos/{pedido_id}/estado', request, json={'estado': nuevo_estado})
             
             if response and response.status_code == 200:
-                messages.success(request, f'Estado del pedido #{pedido_id} actualizado a {nuevo_estado}.')
+                msg = f'Estado del pedido #{pedido_id} actualizado a {nuevo_estado}.'
+                if es_cliente and nuevo_estado == 'rechazado':
+                    msg = 'Pedido cancelado exitosamente.'
+                messages.success(request, msg)
                 return redirect('pedidos:pedido_detalle', pedido_id=pedido_id)
             else:
                 msg = response.json().get('message', 'Error al actualizar estado') if response else 'Error de conexión'
@@ -114,6 +131,13 @@ def pedido_crear(request):
         elif tipo_entrega == 'despacho' and not (direccion and comuna and region):
             messages.error(request, 'Debe completar la dirección de despacho.')
         else:
+            costo_envio = 0
+            if tipo_entrega == 'despacho':
+                try:
+                    costo_envio = int(request.POST.get('costo_envio', 5000))
+                except ValueError:
+                    costo_envio = 5000 # Fallback
+
             # Guardar datos de entrega en sesión temporalmente
             request.session['checkout_data'] = {
                 'tipo_entrega': tipo_entrega,
@@ -121,7 +145,7 @@ def pedido_crear(request):
                 'direccion': direccion,
                 'comuna': comuna,
                 'region': region,
-                'costo_envio': 5000 if tipo_entrega == 'despacho' else 0 # Ejemplo fijo
+                'costo_envio': costo_envio
             }
             return redirect('pedidos:pago_iniciar')
 
@@ -140,12 +164,19 @@ def pedido_crear(request):
         if product:
             precio = float(product['precio'])
             item_subtotal = precio * qty
+            
+            # Fix image URL if it's relative
+            img_url = product.get('imagen_url', '')
+            if img_url and not img_url.startswith('http'):
+                img_url = f"{settings.BACKEND_URL}/{img_url.lstrip('/')}"
+            
             cart_items.append({
                 'id': product['id'],
                 'nombre': product['nombre'],
                 'precio': precio,
                 'cantidad': qty,
-                'subtotal': item_subtotal
+                'subtotal': item_subtotal,
+                'imagen': img_url
             })
             subtotal += item_subtotal
             

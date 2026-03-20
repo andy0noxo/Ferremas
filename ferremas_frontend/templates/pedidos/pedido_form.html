@@ -48,22 +48,23 @@
         <!-- Columna Derecha: Opciones de Entrega -->
         <div class="delivery-options">
             <h3>Opciones de Entrega</h3>
-            <form method="post" action="{% url 'pedidos:pedido_crear' %}">
+            <form method="post" action="{% url 'pedidos:pedido_crear' %}" id="checkout-form">
                 {% csrf_token %}
+                <input type="hidden" name="costo_envio" id="costo_envio_input" value="0">
                 
                 <div class="delivery-selector">
-                    <div class="option" onclick="selectDelivery('retiro')">
-                        <input type="radio" id="retiro" name="tipo_entrega" value="retiro" checked onchange="updateUI()">
+                    <div class="option" onclick="document.getElementById('retiro').checked=true; updateUI();">
+                        <input type="radio" id="retiro" name="tipo_entrega" value="retiro" checked>
                         <label for="retiro">
                             <strong>Retiro en Tienda</strong>
                             <span class="muted">Gratis</span>
                         </label>
                     </div>
-                    <div class="option" onclick="selectDelivery('despacho')">
-                        <input type="radio" id="despacho" name="tipo_entrega" value="despacho" onchange="updateUI()">
+                    <div class="option" onclick="document.getElementById('despacho').checked=true; updateUI();">
+                        <input type="radio" id="despacho" name="tipo_entrega" value="despacho">
                         <label for="despacho">
                             <strong>Despacho a Domicilio</strong>
-                            <span class="price">+$5.000</span>
+                            <span class="price" id="delivery-price-label">Por calcular</span>
                         </label>
                     </div>
                 </div>
@@ -82,175 +83,194 @@
                 <!-- Formulario Despacho -->
                 <div id="despacho-form" class="delivery-form-section" style="display:none;">
                     <div class="form-group">
-                        <label for="region">Región:</label>
-                        <select name="region" id="region" class="form-control" onchange="updateComunas()">
+                        <label>Región:</label>
+                        <select name="region" id="region" class="form-control" onchange="updateComunas(); calculateShipping();">
                             <option value="">Seleccione Región</option>
                             <option value="RM">Metropolitana</option>
                             <option value="V">Valparaíso</option>
+                            <option value="VIII">Biobío</option>
                         </select>
                     </div>
                     <div class="form-group">
-                        <label for="comuna">Comuna:</label>
-                        <select name="comuna" id="comuna" class="form-control">
+                        <label>Comuna:</label>
+                        <select name="comuna" id="comuna" class="form-control" onchange="calculateShipping();">
                             <option value="">Seleccione Comuna</option>
                         </select>
                     </div>
                     <div class="form-group">
-                        <label for="direccion">Dirección:</label>
-                        <input type="text" name="direccion" id="direccion" class="form-control" placeholder="Ej: Av. Principal 123">
+                        <label>Dirección:</label>
+                        <input type="text" name="direccion" id="direccion" class="form-control" placeholder="Ej: Av. Principal 123" onblur="calculateShipping()">
                     </div>
+                    <div id="delivery-info" style="margin-top: 10px; font-size: 0.9em; color: #666;"></div>
                 </div>
 
-                <button type="submit" class="btn-pay">Ir a Pagar</button>
+                <button type="submit" class="btn-pay">Ir a Pagar con Webpay</button>
             </form>
         </div>
     </div>
 </div>
 
-
 <script>
-    // Variables renderizadas desde Django. Usamos safe parsing.
-    const subtotalRaw = "{{ subtotal|stringformat:'f' }}";
-    const subtotal = parseFloat(subtotalRaw.replace(',', '.')); 
-    const shippingCost = 5000;
+    const subtotal = {{ subtotal|stringformat:"d" }}; // Ensure integer
+    let shippingCost = 0;
 
-    function selectDelivery(type) {
-        // Aseguramos que el radio button se marque
-        const radio = document.getElementById(type);
-        if (radio) {
-            radio.checked = true;
-            updateUI();
+    const comunas = {
+        'RM': [
+            'Santiago', 'Providencia', 'Las Condes', 'Maipú', 'Puente Alto', 'La Florida', 'Ñuñoa', 
+            'Vitacura', 'Lo Barnechea', 'Renca', 'Quilicura', 'Pudahuel', 'San Bernardo', 'Peñalolén', 
+            'La Reina', 'Macul', 'Estación Central', 'Independencia', 'Recoleta', 'La Cisterna', 
+            'San Miguel', 'San Joaquín', 'La Granja', 'El Bosque', 'Pedro Aguirre Cerda', 'Lo Espejo', 
+            'Cerrillos', 'Quinta Normal', 'Cerro Navia', 'Lo Prado'
+        ],
+        'V': [
+            'Valparaíso', 'Viña del Mar', 'Concón', 'Quilpué', 'Villa Alemana', 'Limache', 'Olmué', 
+            'Quillota', 'La Calera', 'La Cruz', 'San Antonio', 'Cartagena', 'El Tabo', 'El Quisco', 
+            'Algarrobo', 'Santo Domingo', 'Casablanca', 'Los Andes', 'San Felipe'
+        ],
+        'VIII': [
+            'Concepción', 'Talcahuano', 'San Pedro de la Paz', 'Chiguayante', 'Coronel', 'Lota', 
+            'Tomé', 'Hualpén', 'Los Ángeles', 'Penco'
+        ]
+    };
+
+    function updateComunas() {
+        const region = document.getElementById('region').value;
+        const comunaSelect = document.getElementById('comuna');
+        comunaSelect.innerHTML = '<option value="">Seleccione Comuna</option>';
+        
+        if (comunas[region]) {
+            comunas[region].forEach(c => {
+                const opt = document.createElement('option');
+                opt.value = c;
+                opt.textContent = c;
+                comunaSelect.appendChild(opt);
+            });
         }
+    }
+
+    function calculateShipping() {
+        const isDespacho = document.getElementById('despacho').checked;
+        const region = document.getElementById('region').value;
+        const comuna = document.getElementById('comuna').value;
+        const direccion = document.getElementById('direccion').value;
+        const infoDiv = document.getElementById('delivery-info');
+        
+        if (isDespacho && region && comuna && direccion) {
+            // Simular cálculo de distancia interna
+            // Usamos un hash simple de la dirección para generar una "distancia" determinista
+            const str = region + comuna + direccion;
+            let hash = 0;
+            for (let i = 0; i < str.length; i++) {
+                hash = ((hash << 5) - hash) + str.charCodeAt(i);
+                hash |= 0; 
+            }
+            const seed = Math.abs(hash);
+            
+            // Distancia aleatoria entre 1km y 50km
+            const distanceKm = (seed % 49) + 1; 
+            
+            // Calculo de costo: Base $2000 + $150 por Km
+            const basePrice = 2000;
+            const pricePerKm = 150;
+            const calculatedPrice = Math.round((basePrice + (distanceKm * pricePerKm)) / 10) * 10;
+            
+            shippingCost = calculatedPrice;
+            
+            infoDiv.innerHTML = `
+                <p>📍 Distancia calculada a sucursal más cercana: <strong>${distanceKm} km</strong>.</p>
+                <p>🚚 Costo de envío calculado: <strong>$${formatNumber(shippingCost)}</strong></p>
+            `;
+        } else {
+            shippingCost = 0;
+            infoDiv.innerHTML = '';
+        }
+        
+        updateUI();
     }
 
     function updateUI() {
-        try {
-            const radioDespacho = document.getElementById('despacho');
-            const isDespacho = radioDespacho ? radioDespacho.checked : false;
-            
-            const retiroForm = document.getElementById('retiro-form');
-            const despachoForm = document.getElementById('despacho-form');
-            const shippingEl = document.getElementById('shipping-display');
-            const totalEl = document.getElementById('total-display');
-            
-            const sucursalInput = document.getElementById('sucursal_id');
-            const regionInput = document.getElementById('region');
-            const comunaInput = document.getElementById('comuna');
-            const direccionInput = document.getElementById('direccion');
+        const isDespacho = document.getElementById('despacho').checked;
+        const retiroForm = document.getElementById('retiro-form');
+        const despachoForm = document.getElementById('despacho-form');
+        const shippingEl = document.getElementById('shipping-display');
+        const totalEl = document.getElementById('total-display');
+        const labelPrice = document.getElementById('delivery-price-label');
+        const hiddenInput = document.getElementById('costo_envio_input');
+        
+        const sucursalInput = document.getElementById('sucursal_id');
+        const regionInput = document.getElementById('region');
+        const comunaInput = document.getElementById('comuna');
+        const direccionInput = document.getElementById('direccion');
 
-            if (!retiroForm || !despachoForm) return;
-
-            if (isDespacho) {
-                if (retiroForm) retiroForm.style.display = 'none';
-                if (despachoForm) despachoForm.style.display = 'block';
-                
-                if (shippingEl) shippingEl.textContent = '$' + formatNumber(shippingCost);
-                if (totalEl) totalEl.textContent = '$' + formatNumber(subtotal + shippingCost);
-                
-                if (sucursalInput) sucursalInput.required = false;
-                if (regionInput) regionInput.required = true;
-                if (comunaInput) comunaInput.required = true;
-                if (direccionInput) direccionInput.required = true;
+        if (isDespacho) {
+            retiroForm.style.display = 'none';
+            despachoForm.style.display = 'block';
+            
+            if (shippingCost > 0) {
+                labelPrice.textContent = '+$' + formatNumber(shippingCost);
+                shippingEl.textContent = '$' + formatNumber(shippingCost);
+                hiddenInput.value = shippingCost;
             } else {
-                if (retiroForm) retiroForm.style.display = 'block';
-                if (despachoForm) despachoForm.style.display = 'none';
-                
-                if (shippingEl) shippingEl.textContent = '$0';
-                if (totalEl) totalEl.textContent = '$' + formatNumber(subtotal);
-                
-                if (sucursalInput) sucursalInput.required = true;
-                if (regionInput) regionInput.required = false;
-                if (comunaInput) comunaInput.required = false;
-                if (direccionInput) direccionInput.required = false;
+                labelPrice.textContent = 'Por calcular';
+                shippingEl.textContent = '$0';
+                hiddenInput.value = 0;
             }
-        } catch (e) {
-            console.error("Error updating UI:", e);
+            
+            totalEl.textContent = '$' + formatNumber(subtotal + shippingCost);
+            
+            sucursalInput.required = false;
+            regionInput.required = true;
+            comunaInput.required = true;
+            direccionInput.required = true;
+        } else {
+            retiroForm.style.display = 'block';
+            despachoForm.style.display = 'none';
+            
+            shippingCost = 0;
+            shippingEl.textContent = '$0';
+            totalEl.textContent = '$' + formatNumber(subtotal);
+            hiddenInput.value = 0;
+            
+            sucursalInput.required = true;
+            regionInput.required = false;
+            comunaInput.required = false;
+            direccionInput.required = false;
         }
     }
 
+    // Helper para formatear numeros
     function formatNumber(num) {
-        return Math.floor(num).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".");
-    }
-    
-    function updateComunas() {
-        const regionEl = document.getElementById('region');
-        if (!regionEl) return;
-        const region = regionEl.value;
-        
-        const comunaSel = document.getElementById('comuna');
-        if (!comunaSel) return;
-        
-        comunaSel.innerHTML = '<option value="">Seleccione Comuna</option>';
-        
-        const comunasRM = ['Santiago', 'Providencia', 'Las Condes', 'Maipú', 'Puente Alto', 'La Florida', 'Ñuñoa', 'Peñalolén', 'La Reina', 'Vitacura'];
-        const comunasV = ['Valparaíso', 'Viña del Mar', 'Quilpué', 'Villa Alemana', 'Con-Con', 'Reñaca'];
-        
-        let options = [];
-        if (region === 'RM') options = comunasRM;
-        else if (region === 'V') options = comunasV;
-        
-        options.forEach(c => {
-            const opt = document.createElement('option');
-            opt.value = c;
-            opt.textContent = c;
-            comunaSel.appendChild(opt);
-        });
+        return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".");
     }
 
-    // Inicializar UI cuando el DOM esté listo
-    document.addEventListener('DOMContentLoaded', function() {
+    document.addEventListener('DOMContentLoaded', () => {
         updateUI();
-        // Agregar listeners directos por si el onclick inline falla
-        const rRetiro = document.getElementById('retiro');
-        const rDespacho = document.getElementById('despacho');
-        if (rRetiro) rRetiro.addEventListener('change', updateUI);
-        if (rDespacho) rDespacho.addEventListener('change', updateUI);
     });
 </script>
 
 <style>
-    .checkout-container { max-width: 1200px; margin: 0 auto; padding: 20px; }
-    .checkout-grid { display: grid; grid-template-columns: 1.5fr 1fr; gap: 30px; }
+    .checkout-container { max-width: 1000px; margin: 0 auto; padding: 20px; }
+    .checkout-grid { display: grid; grid-template-columns: 1.2fr 0.8fr; gap: 30px; }
     @media(max-width: 768px) { .checkout-grid { grid-template-columns: 1fr; } }
     
-    .checkout-item { display: flex; gap: 15px; padding: 15px 0; border-bottom: 1px solid #eee; align-items: center; }
+    .checkout-item { display: flex; gap: 15px; padding: 15px 0; border-bottom: 1px solid #eee; }
     .item-img { width: 80px; height: 80px; object-fit: cover; background: #eee; border-radius: 4px; }
-    .item-details h4 { margin: 0 0 5px 0; font-size: 1.1em; color: #333; }
-    .item-details p { margin: 0; color: #666; font-size: 0.9em; }
-    .item-total { margin-left: auto; font-size: 1.1em; color: #333; }
+    .item-total { margin-left: auto; font-size: 1.1em; }
     
-    .totals-section { background: #f9f9f9; padding: 20px; margin-top: 20px; border-radius: 8px; border: 1px solid #eee; }
-    .totals-section .row { display: flex; justify-content: space-between; margin-bottom: 10px; font-size: 1.1em; }
-    .total-row { font-size: 1.4em; font-weight: bold; border-top: 2px solid #ddd; padding-top: 15px; margin-top: 15px; color: #2c3e50; }
+    .totals-section { background: #f9f9f9; padding: 20px; margin-top: 20px; border-radius: 8px; }
+    .totals-section .row { display: flex; justify-content: space-between; margin-bottom: 10px; }
+    .total-row { font-size: 1.4em; font-weight: bold; border-top: 2px solid #ddd; padding-top: 10px; margin-top: 10px; }
     
-    .delivery-options { background: #fff; padding: 25px; border: 1px solid #e1e4e8; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); height: fit-content; }
-    .delivery-options h3 { margin-top: 0; margin-bottom: 20px; color: #2c3e50; border-bottom: 2px solid #eee; padding-bottom: 10px; }
-    
-    .delivery-selector { display: flex; flex-direction: column; gap: 12px; margin-bottom: 25px; }
-    .delivery-selector .option { border: 2px solid #ddd; padding: 15px; border-radius: 8px; display: flex; gap: 15px; align-items: center; cursor: pointer; transition: all 0.2s ease; position: relative; }
-    .delivery-selector .option:hover { background: #f8fbff; border-color: #cbd5e1; }
-    .delivery-selector input[type="radio"] { transform: scale(1.2); cursor: pointer; }
+    .delivery-options { background: #fff; padding: 20px; border: 1px solid #eee; border-radius: 8px; height: fit-content; }
+    .delivery-selector { display: flex; flex-direction: column; gap: 10px; margin-bottom: 20px; cursor: pointer; }
+    .delivery-selector .option { border: 1px solid #ddd; padding: 15px; border-radius: 6px; display: flex; gap: 10px; align-items: center; cursor: pointer; transition: 0.2s; }
+    .delivery-selector .option:hover { background: #f0f8ff; border-color: #2563eb; }
     .delivery-selector input[type="radio"]:checked + label { color: #2563eb; }
-    .delivery-selector input[type="radio"]:checked ~ label .price { color: #2563eb; }
-    .delivery-selector input[type="radio"]:checked { accent-color: #2563eb; }
-    .delivery-selector label { flex-grow: 1; display: flex; align-items: center; cursor: pointer; font-size: 1.1em; }
     
-    /* Highlight selected option */
-    .delivery-selector .option:has(input:checked) { border-color: #2563eb; background-color: #f0f7ff; }
-
-    .delivery-form-section { animation: fadeIn 0.3s ease-in-out; }
-    @keyframes fadeIn { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
-
-    .form-group { margin-bottom: 15px; }
-    .form-group label { display: block; margin-bottom: 8px; font-weight: 600; color: #444; }
-    .form-control { width: 100%; padding: 12px; border: 1px solid #ccc; border-radius: 6px; box-sizing: border-box; font-size: 1em; transition: border-color 0.2s; }
-    .form-control:focus { border-color: #2563eb; outline: none; box-shadow: 0 0 0 3px rgba(37,99,235,0.1); }
-    
-    .btn-pay { width: 100%; background: #e63946; color: white; padding: 16px; border: none; font-size: 1.25em; font-weight: bold; cursor: pointer; border-radius: 8px; margin-top: 25px; transition: background 0.3s, transform 0.1s; display: block; text-align: center; text-decoration: none; } 
+    .form-control { width: 100%; padding: 10px; margin-bottom: 15px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; }
+    .btn-pay { width: 100%; background: #e63946; color: white; padding: 15px; border: none; font-size: 1.2em; font-weight: bold; cursor: pointer; border-radius: 6px; margin-top: 20px; transition: 0.3s; } 
     .btn-pay:hover { background: #d62839; }
-    .btn-pay:active { transform: scale(0.98); }
-    
-    .muted { color: #64748b; font-size: 0.9em; margin-left: auto; background: #e2e8f0; padding: 4px 8px; border-radius: 4px; }
-    .price { color: #2563eb; font-weight: bold; margin-left: auto; background: #dbeafe; padding: 4px 8px; border-radius: 4px; }
+    .muted { color: #888; font-size: 0.9em; margin-left: auto; }
+    .price { color: #2563eb; font-weight: bold; margin-left: auto; }
 </style>
 {% endblock %}

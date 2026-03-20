@@ -1,31 +1,158 @@
 {% extends 'base.html' %}
+{% load humanize %}
 {% block title %}Panel Contador{% endblock %}
 
 {% block content %}
 <div class="dashboard-container">
-    <h2>Panel de Contabilidad</h2>
-    <p>Bienvenido, <strong>{{ user.nombre }}</strong>.</p>
-    <p>Aquí puedes revisar pedidos y stock general.</p>
+    <div class="header-welcome">
+        <h2>Hola, {{ user.nombre }}</h2>
+        <p class="subtitle">Resumen Financiero y Contable</p>
+    </div>
 
+    <!-- Quick Stats -->
+    <div class="stats-grid">
+        <div class="stat-card success">
+            <span class="stat-value">${{ stats.total_ventas_mes|floatformat:0|intcomma }}</span>
+            <span class="stat-label">Ventas Mes Actual</span>
+        </div>
+        <div class="stat-card">
+            <span class="stat-value">{{ stats.cantidad_ventas|default:"0" }}</span>
+            <span class="stat-label">Transacciones</span>
+        </div>
+        <div class="stat-card warning">
+            <span class="stat-value">{{ stats.pendientes_count|default:"0" }}</span>
+            <span class="stat-label">Pendientes de Pago</span>
+        </div>
+    </div>
+
+    <h3>Herramientas Contables</h3>
     <div class="dashboard-grid">
-        <a href="{% url 'pedidos:pedidos_list' %}" class="dashboard-card">
-            <h3>🛒 Pedidos</h3>
-            <p>Revisar el estado de las compras de los clientes y gestionarlas.</p>
+        <a href="{% url 'pedidos:pedidos_list' %}?estado=aprobado" class="dashboard-card">
+            <h3>💰 Ventas Aprobadas</h3>
+            <p>Revisar detalle de transacciones completadas y facturación.</p>
         </a>
 
-        <a href="{% url 'core:stock_list' %}" class="dashboard-card">
-            <h3>🏢 Stock General</h3>
-            <p>Visualizar el stock de productos en las sucursales.</p>
+        <a href="{% url 'pedidos:pedidos_list' %}?estado=pendiente" class="dashboard-card">
+            <h3>⏳ Pagos Pendientes</h3>
+            <p>Gestionar y verificar pagos pendientes de clientes.</p>
         </a>
+
+        <a href="{% url 'core:productos_list' %}" class="dashboard-card">
+            <h3>📊 Catálogo y Precios</h3>
+            <p>Auditoría de precios y costos de productos en inventario.</p>
+        </a>
+    </div>
+
+    <div class="recent-activity-wrapper" style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem;">
+        <!-- Ventas Recientes -->
+        <div class="recent-activity">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                <h3>Últimas Ventas Aprobadas</h3>
+                <a href="{% url 'pedidos:pedidos_list' %}?estado=aprobado" class="btn-link">Ver historial →</a>
+            </div>
+            
+            <table class="recent-table">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Fecha</th>
+                        <th>Total</th>
+                        <th>Acción</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for pedido in ultimas_ventas %}
+                    <tr>
+                        <td>#{{ pedido.id }}</td>
+                        <td>{{ pedido.fecha_pedido|slice:":10" }}</td>
+                        <td style="font-weight: bold; color: #059669;">${{ pedido.total|floatformat:0|intcomma }}</td>
+                        <td><a href="{% url 'pedidos:pedido_detalle' pedido.id %}" class="btn-sm">Detalle</a></td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="4" style="text-align: center; padding: 20px; color: #64748b;">
+                            No hay ventas aprobadas recientes.
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Pendientes Pago -->
+        <div class="recent-activity">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                <h3>Pendientes de Pago</h3>
+                <a href="{% url 'pedidos:pedidos_list' %}?estado=pendiente" class="btn-link">Gestionar cobros →</a>
+            </div>
+            
+            <table class="recent-table">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Cliente</th>
+                        <th>Total</th>
+                        <th>Estado</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for pedido in pendientes_pago %}
+                    <tr>
+                        <td>#{{ pedido.id }}</td>
+                        <td>{{ pedido.usuario.nombre|default:"Cliente" }}</td>
+                        <td style="font-weight: bold;">${{ pedido.total|floatformat:0|intcomma }}</td>
+                        <td><span style="color: #d97706; background: #fef3c7; padding: 2px 8px; border-radius: 99px; font-size: 0.8em; font-weight: bold;">Pendiente</span></td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="4" style="text-align: center; padding: 20px; color: #64748b;">
+                             Todos los pagos al día.
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
     </div>
 </div>
 
 <style>
-    .dashboard-container { padding: 2rem; background-color: white; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); margin-top: 1rem; }
-    .dashboard-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1.5rem; margin-top: 2rem; }
-    .dashboard-card { display: block; padding: 1.5rem; background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; text-decoration: none; color: #1e293b; transition: all 0.2s ease; }
-    .dashboard-card:hover { transform: translateY(-3px); box-shadow: 0 4px 6px rgba(0,0,0,0.1); border-color: #3b82f6; background-color: #eff6ff; }
-    .dashboard-card h3 { margin-top: 0; margin-bottom: 0.5rem; color: #0f172a; font-size: 1.25rem; }
-    .dashboard-card p { margin: 0; color: #64748b; font-size: 0.95rem; line-height: 1.4; }
+    .dashboard-container { max-width: 1200px; margin: 0 auto; padding: 2rem; background-color: var(--bg-card); border-radius: 12px; box-shadow: var(--shadow); }
+    .header-welcome { margin-bottom: 2rem; border-bottom: 1px solid var(--border-color); padding-bottom: 1rem; }
+    .header-welcome h2 { margin: 0; color: var(--text-heading); font-size: 1.8rem; }
+    .subtitle { color: var(--text-secondary); margin: 0.5rem 0 0 0; }
+
+    .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 1.5rem; margin-bottom: 2.5rem; }
+    .stat-card { background: var(--bg-menu-header); padding: 1.5rem; border-radius: 10px; text-align: center; border: 1px solid var(--border-color); }
+    .stat-value { display: block; font-size: 2rem; font-weight: bold; color: var(--text-heading); margin-bottom: 5px; }
+    .stat-label { color: var(--text-secondary); font-size: 0.9rem; font-weight: 500; text-transform: uppercase; letter-spacing: 0.05em; }
+    .stat-card.warning .stat-value { color: #d97706; }
+    .stat-card.success .stat-value { color: #059669; }
+    .stat-card.error .stat-value { color: #dc2626; }
+
+    .dashboard-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1.5rem; margin-bottom: 2.5rem; }
+    .dashboard-card { display: block; padding: 1.5rem; background-color: var(--bg-card); border: 1px solid var(--border-color); border-radius: 10px; text-decoration: none; color: var(--text-color); transition: all 0.2s ease; box-shadow: var(--shadow-sm); }
+    .dashboard-card:hover { transform: translateY(-3px); box-shadow: var(--shadow); border-color: var(--primary-color); }
+    .dashboard-card h3 { margin-top: 0; margin-bottom: 0.5rem; color: var(--text-heading); font-size: 1.25rem; display: flex; align-items: center; gap: 8px; }
+    .dashboard-card p { margin: 0; color: var(--text-secondary); font-size: 0.95rem; line-height: 1.4; }
+
+    .recent-activity h3 { margin-top: 0; color: var(--text-heading); font-size: 1.1rem; }
+    .recent-table { width: 100%; border-collapse: collapse; margin-top: 1rem; }
+    .recent-table th { text-align: left; padding: 0.75rem; background-color: var(--bg-menu-header); color: var(--text-secondary); font-weight: 600; border-bottom: 1px solid var(--border-color); font-size: 0.9rem; }
+    .recent-table td { padding: 0.75rem; border-bottom: 1px solid var(--border-color); color: var(--text-color); font-size: 0.9rem; }
+    .recent-table tr:hover { background-color: var(--bg-menu-hover); }
+    
+    .btn-sm { display: inline-block; padding: 4px 12px; font-size: 0.85rem; color: var(--primary-color); background: var(--badge-cliente-bg); border-radius: 4px; text-decoration: none; font-weight: 500; }
+    .btn-sm:hover { background: var(--badge-cliente-text); color: var(--bg-card); }
+    
+    .btn-link { color: var(--primary-color); text-decoration: none; font-weight: 500; font-size: 0.95rem; }
+    .btn-link:hover { text-decoration: underline; }
+
+    @media (max-width: 768px) {
+        .recent-activity-wrapper { grid-template-columns: 1fr !important; }
+    }
+    
+    .dashboard-card h3 { margin: 0 0 0.75rem 0; color: var(--text-heading); font-size: 1.25rem; font-weight: 600; }
+    .dashboard-card p { margin: 0; color: var(--text-secondary); font-size: 0.95rem; line-height: 1.5; }
 </style>
 {% endblock %}

@@ -1,4 +1,5 @@
 {% extends 'base.html' %}
+{% load humanize %}
 {% block title %}Detalle de Pedido #{{ pedido.id }}{% endblock %}
 
 {% block content %}
@@ -14,37 +15,57 @@
 <div class="grid-layout">
     <div class="card info-card">
         <h3>Información General</h3>
-        <p><strong>Fecha:</strong> {{ pedido.fecha_pedido|date:"d/m/Y H:i" }}</p>
+        <p><strong>Fecha:</strong> {{ pedido.fecha_pedido|slice:":10" }} {{ pedido.fecha_pedido|slice:"11:16" }}</p>
         <p><strong>Metodo de Pago:</strong> {{ pedido.metodo_pago|title }}</p>
-        <p><strong>Total (CLP):</strong> ${{ pedido.total|floatformat:0 }}</p>
+        
+        {% if pedido.direccion_envio %}
+            <p><strong>Subtotal Productos:</strong> ${{ pedido.subtotal_productos|default:pedido.total|intcomma }}</p>
+            {% if pedido.subtotal_productos_usd %}
+            <p style="font-size: 0.9em; color: #64748b; margin-top: -10px;">(USD ${{ pedido.subtotal_productos_usd|floatformat:2 }})</p>
+            {% endif %}
+            
+            <p><strong>Costo de Envío:</strong> ${{ pedido.costo_envio|default:5000|intcomma }}</p>
+            {% if pedido.costo_envio_usd %}
+            <p style="font-size: 0.9em; color: #64748b; margin-top: -10px;">(USD ${{ pedido.costo_envio_usd|floatformat:2 }})</p>
+            {% endif %}
+        {% endif %}
+        
+        <p class="total-highlight"><strong>TOTAL A PAGAR:</strong> ${{ pedido.total|intcomma }}</p>
         {% if pedido.total_usd %}
-        <p><strong>Total (USD):</strong> ${{ pedido.total_usd|floatformat:2 }}</p>
+        <p style="font-size: 0.9em; color: #64748b;">(USD ${{ pedido.total_usd|floatformat:2 }})</p>
         {% endif %}
     </div>
 
     <div class="card shipping-card">
         <h3>Detalles de Entrega</h3>
-        {% if pedido.sucursal %}
-            <p><strong>Tipo:</strong> Retiro en Tienda</p>
-            <p><strong>Sucursal:</strong> {{ pedido.sucursal.nombre }}</p>
-        {% else %}
+        {% if pedido.direccion_envio %}
             <p><strong>Tipo:</strong> Despacho a Domicilio</p>
-            <!-- If address details are available -->
-            {% if pedido.direccion_envio %}
             <p><strong>Dirección:</strong> {{ pedido.direccion_envio }}</p>
+            {% if pedido.sucursal %}
+            <p><strong>Bodega de Origen:</strong> {{ pedido.sucursal.nombre }}</p>
+            {% endif %}
+        {% else %}
+            <p><strong>Tipo:</strong> Retiro en Tienda</p>
+            {% if pedido.sucursal %}
+            <p><strong>Sucursal:</strong> {{ pedido.sucursal.nombre }}</p>
+            <p><strong>Dirección:</strong> {{ pedido.sucursal.direccion }}</p>
             {% endif %}
         {% endif %}
     </div>
 </div>
 
-<div class="card products-card">
+    <div class="card products-card">
     <h3>Productos</h3>
     <table class="data-table">
         <thead>
             <tr>
                 <th>Producto</th>
                 <th>Precio Unit.</th>
-                <th>Cantidad</th>
+                <th>Cantidad Pedida</th>
+                <th>Stock en Bodega</th>
+                {% if pedido.direccion_envio %}
+                <th>Precio de Envío</th>
+                {% endif %}
                 <th>Subtotal</th>
             </tr>
         </thead>
@@ -52,15 +73,58 @@
             {% for detalle in pedido.detalles %}
             <tr>
                 <td>{{ detalle.producto.nombre }}</td>
-                <td>${{ detalle.precio_unitario|floatformat:0 }}</td>
-                <td>{{ detalle.cantidad }}</td>
-                <!-- Simple Calculation if needed, or if backend provides subtotal per line -->
-                <td>${{ detalle.precio_unitario|floatformat:0 }} * {{ detalle.cantidad }}</td> 
+                <td>
+                    ${{ detalle.precio_unitario|intcomma }}
+                    {% if detalle.precio_unitario_usd %}
+                    <br><small class="text-muted">(USD ${{ detalle.precio_unitario_usd|floatformat:2 }})</small>
+                    {% endif %}
+                </td>
+                <td><strong>{{ detalle.cantidad }} un.</strong></td>
+                <td>
+                    {% if detalle.stock_bodega >= detalle.cantidad %}
+                        <span style="color: #166534; font-weight: bold;">{{ detalle.stock_bodega }} un. (Suficiente)</span>
+                    {% else %}
+                        <span style="color: #991b1b; font-weight: bold;">{{ detalle.stock_bodega }} un. (Insuficiente)</span>
+                    {% endif %}
+                </td>
+                {% if pedido.direccion_envio %}
+                <td style="color: #64748b; font-size: 0.9em; font-style: italic;">
+                    --
+                </td>
+                {% endif %}
+                <td>
+                    <strong>${{ detalle.subtotal|intcomma }}</strong>
+                    {% if detalle.subtotal_usd %}
+                    <br><small class="text-muted">(USD ${{ detalle.subtotal_usd|floatformat:2 }})</small>
+                    {% endif %}
+                </td> 
             </tr>
             {% empty %}
-            <tr><td colspan="4">No hay productos en este pedido.</td></tr>
+            <tr><td colspan="{% if pedido.direccion_envio %}6{% else %}5{% endif %}">No hay productos en este pedido.</td></tr>
             {% endfor %}
-        </tbody>
+            
+            {% if pedido.direccion_envio %}
+            <tr style="background-color: #f8fafc; color: #4f46e5;">
+                <td colspan="4" style="text-align: right; font-weight: bold;">Costo de Envío Fijo:</td>
+                <td>
+                    ${{ pedido.costo_envio|default:5000|intcomma }}
+                    {% if pedido.costo_envio_usd %}
+                    <br><small class="text-muted" style="color: #64748b; font-weight: normal;">(USD ${{ pedido.costo_envio_usd|floatformat:2 }})</small>
+                    {% endif %}
+                </td>
+                <td></td>
+            </tr>
+            {% endif %}
+            
+            <tr style="background-color: #f1f5f9; font-weight: bold; font-size: 1.1em; border-top: 2px solid #e2e8f0;">
+                <td colspan="{% if pedido.direccion_envio %}5{% else %}4{% endif %}" style="text-align: right;">Total General:</td>
+                <td>
+                    ${{ pedido.total|intcomma }}
+                    {% if pedido.total_usd %}
+                    <br><small class="text-muted" style="font-weight: normal;">(USD ${{ pedido.total_usd|floatformat:2 }})</small>
+                    {% endif %}
+                </td>
+            </tr>
     </table>
 </div>
 
@@ -110,6 +174,21 @@
                 <span style="color: #64748b;">No hay acciones disponibles para este estado.</span>
             {% endif %}
         </div>
+    </div>
+</div>
+{% endif %}
+
+<!-- Cliente Actions -->
+{% if user.rol == 'Cliente' and pedido.estado == 'pendiente' %}
+<div class="pedido-actions" style="margin-top: 2rem; padding: 1.5rem; background: #fff1f2; border-radius: 8px; border: 1px solid #fecdd3;">
+    <h3 style="margin-top: 0; font-size: 1.1rem; color: #9f1239; margin-bottom: 1rem;">Cancelar Pedido</h3>
+    <div style="display: flex; align-items: center; justify-content: space-between;">
+        <p style="color: #881337; margin: 0;">¿Desea cancelar este pedido? Esta acción no se puede deshacer.</p>
+        <form method="post" action="{% url 'pedidos:pedido_actualizar_estado' pedido.id %}" onsubmit="return confirm('¿Está seguro de cancelar este pedido?');">
+            {% csrf_token %}
+            <input type="hidden" name="estado" value="rechazado">
+            <button type="submit" class="btn-action" style="background: #e11d48; color: white; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer; font-weight: 600;">🚫 Cancelar Pedido</button>
+        </form>
     </div>
 </div>
 {% endif %}

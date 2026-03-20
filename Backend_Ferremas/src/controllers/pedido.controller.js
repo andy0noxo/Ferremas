@@ -126,10 +126,25 @@ exports.createPedido = async (req, res, next) => {
 exports.updateEstado = async (req, res, next) => {
   try {
     const pedido = await db.Pedido.findByPk(req.params.id, {
-      include: [{ model: db.Usuario, as: 'usuario', attributes: ['email'] }]
+      include: [{ model: db.Usuario, as: 'usuario', attributes: ['email', 'id'] }]
     });
 
     if (!pedido) throw new Error('Pedido no encontrado');
+
+    const userRole = req.user.rol;
+    
+    // Si es Cliente, validar que sea su pedido y solo pueda cancelar (estado 'rechazado')
+    if (userRole === 'Cliente') {
+      if (pedido.usuario_id !== req.user.id) {
+        return res.status(403).json({ message: 'No autorizado para modificar este pedido.' });
+      }
+      if (req.body.estado !== 'rechazado') {
+        return res.status(400).json({ message: 'Clientes solo pueden cancelar pedidos.' });
+      }
+      if (pedido.estado !== 'pendiente') {
+         return res.status(400).json({ message: 'Solo se pueden cancelar pedidos pendientes.' });
+      }
+    }
 
     await pedido.update({ estado: req.body.estado });
     
@@ -199,6 +214,21 @@ exports.obtenerPedidoPorId = async (req, res, next) => {
       ]
     });
     if (!pedido) return res.status(404).json({ message: 'Pedido no encontrado' });
+
+    // Enriquecer con Stock de Bodega
+    const pedidoJSON = pedido.toJSON();
+    if (pedido.sucursal_retiro && pedidoJSON.detalles) {
+      for (const detalle of pedidoJSON.detalles) {
+        const stock = await db.Stock.findOne({
+          where: {
+            producto_id: detalle.producto_id,
+            sucursal_id: pedido.sucursal_retiro
+          }
+        });
+        detalle.stock_bodega = stock ? stock.cantidad : 0;
+      }
+    }
+
     // Conversión CLP/USD
     let clpToUsdRate = 0;
     try {
@@ -206,10 +236,44 @@ exports.obtenerPedidoPorId = async (req, res, next) => {
     } catch (e) {
       clpToUsdRate = 0;
     }
-    res.json({
-      ...pedido.toJSON(),
-      total_usd: clpToUsdRate ? (pedido.total * clpToUsdRate) : null
-    });
+
+    if (pedidoJSON.detalles) {
+      pedidoJSON.detalles = pedidoJSON.detalles.map(detalle => {
+        // Asegúrate de que los valores sean números antes de multiplicar
+        const precioUnitario = parseFloat(detalle.precio_unitario) || 0;
+        const cantidad = parseInt(detalle.cantidad) || 0;
+        const subtotal = precioUnitario * cantidad;
+        
+        return {
+          ...detalle,
+          subtotal: subtotal,
+          precio_unitario_usd: clpToUsdRate ? (precioUnitario * clpToUsdRate) : null,
+          subtotal_usd: clpToUsdRate ? (subtotal * clpToUsdRate) : null
+          
+        };
+      });
+    }
+
+    // Devolvemos el objeto enriquecido (pedidoJSON)
+    const totalPedido = parseFloat(pedido.total) || 0;
+    
+    const response = {
+      ...pedidoJSON,
+      total_usd: clpToUsdRate ? (totalPedido * clpToUsdRate) : null,
+      clp_to_usd_rate: clpToUsdRate
+    };
+    
+    if (pedido.direccion_envio) {
+      const costoEnvio = 5000;
+      response.costo_envio = costoEnvio;
+      response.costo_envio_usd = clpToUsdRate ? (costoEnvio * clpToUsdRate) : null;
+      
+      const subtotalProductos = totalPedido - costoEnvio;
+      response.subtotal_productos = subtotalProductos;
+      response.subtotal_productos_usd = clpToUsdRate ? (subtotalProductos * clpToUsdRate) : null;
+    }
+
+    res.json(response);
   } catch (error) {
     next(error);
   }

@@ -109,14 +109,16 @@
     </div>
 
     {% if accion == 'Editar' and producto %}
-    <div class="danger-zone card mt-4">
-        <h3>Zona de Peligro</h3>
-        <p>Una vez que eliminas un producto, no hay vuelta atrás. Por favor, esté seguro.</p>
-        <form method="post" action="{% url 'core:producto_eliminar' producto.id %}">
-            {% csrf_token %}
-            <button type="submit" class="btn-danger" onclick="return confirm('¿Seguro que desea eliminar este producto? Todos sus registros de stock también se perderán.');">Eliminar Producto</button>
-        </form>
-    </div>
+        {% if user.rol == 'Administrador' or user.rol == 'Bodeguero' %}
+        <div class="danger-zone card mt-4">
+            <h3>Zona de Peligro</h3>
+            <p>Una vez que eliminas un producto, no hay vuelta atrás. Por favor, esté seguro.</p>
+            <form method="post" action="{% url 'core:producto_eliminar' producto.id %}">
+                {% csrf_token %}
+                <button type="submit" class="btn-danger" onclick="return confirm('¿Seguro que desea eliminar este producto? Todos sus registros de stock también se perderán.');">Eliminar Producto</button>
+            </form>
+        </div>
+        {% endif %}
     {% endif %}
 </div>
 

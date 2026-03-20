@@ -7,7 +7,7 @@ const ROLES = require('../config/roles.config');
 
 const router = express.Router();
 
-router.get('/', verifyToken, checkRole([ROLES.ADMIN, ROLES.VENDEDOR, ROLES.BODEGUERO]), pedidoController.obtenerPedidos); // Nuevo endpoint GET
+router.get('/', verifyToken, checkRole([ROLES.ADMIN, ROLES.VENDEDOR, ROLES.BODEGUERO, ROLES.CONTADOR]), pedidoController.obtenerPedidos); // Nuevo endpoint GET
 
 router.post('/',
   verifyToken,
@@ -23,7 +23,7 @@ router.post('/',
 
 router.put('/:id/estado',
   verifyToken,
-  checkRole([ROLES.VENDEDOR, ROLES.ADMIN, ROLES.BODEGUERO]),
+  checkRole([ROLES.VENDEDOR, ROLES.ADMIN, ROLES.BODEGUERO, ROLES.CLIENTE]),
   [
     body('estado').isIn(['aprobado', 'rechazado', 'preparado', 'despachado', 'entregado']),
     validateRequest
