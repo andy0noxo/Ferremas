@@ -3,10 +3,37 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script>
+        // Apply theme immediately - BLOCKING to prevent flash
+        (function() {
+            var s = localStorage.getItem('theme'),
+                p = window.matchMedia('(prefers-color-scheme: dark)').matches;
+            if (s === 'dark' || (!s && p)) {
+                // Set attribute and background immediately
+                document.documentElement.setAttribute('data-theme', 'dark');
+                document.documentElement.style.backgroundColor = '#121212';
+                // Use document.write for blocking style injection - "Nuclear Option" for FOUC
+                document.write('<style id="theme-style">html,body{background-color:#121212!important;color:#e0e0e0!important;min-height:100vh}*,*::before,*::after{transition:none!important}</style>');
+                
+                // Remove blocking styles after paint
+                window.addEventListener('load', function() {
+                    requestAnimationFrame(function() {
+                        setTimeout(function() { 
+                            var t = document.getElementById('theme-style');
+                            if(t) t.remove();
+                            // Clean up inline styles
+                            document.documentElement.style.backgroundColor = '';
+                        }, 100);
+                    });
+                });
+            }
+        })();
+    </script>
     <title>{% block title %}Ferremas{% endblock %}</title>
     {% load static %}
     <link rel="icon" type="image/png" href="{% static 'img/Logo_Ferremas.png' %}">
-    <link rel="stylesheet" href="{% static 'css/styles.css' %}">
+    <link rel="stylesheet" href="{% static 'css/styles.css' %}?v=2">
+    <link rel="stylesheet" href="{% static 'css/ferremas.css' %}?v=2">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body>

@@ -276,21 +276,21 @@
     .checkout-grid { display: grid; grid-template-columns: 1.2fr 0.8fr; gap: 30px; }
     @media(max-width: 768px) { .checkout-grid { grid-template-columns: 1fr; } }
     
-    .checkout-item { display: flex; gap: 15px; padding: 15px 0; border-bottom: 1px solid #eee; }
+    .checkout-item { display: flex; gap: 15px; padding: 15px 0; border-bottom: 1px solid var(--border-color); }
     .item-img { width: 80px; height: 80px; object-fit: cover; background: #eee; border-radius: 4px; }
     .item-total { margin-left: auto; font-size: 1.1em; }
     
-    .totals-section { background: #f9f9f9; padding: 20px; margin-top: 20px; border-radius: 8px; }
+    .totals-section { background: var(--bg-menu-header); padding: 20px; margin-top: 20px; border-radius: 8px; color: var(--text-primary); }
     .totals-section .row { display: flex; justify-content: space-between; margin-bottom: 10px; }
-    .total-row { font-size: 1.4em; font-weight: bold; border-top: 2px solid #ddd; padding-top: 10px; margin-top: 10px; }
+    .total-row { font-size: 1.4em; font-weight: bold; border-top: 2px solid var(--border-color); padding-top: 10px; margin-top: 10px; }
     
-    .delivery-options { background: #fff; padding: 20px; border: 1px solid #eee; border-radius: 8px; height: fit-content; }
+    .delivery-options { background: var(--bg-card); padding: 20px; border: 1px solid var(--border-color); border-radius: 8px; height: fit-content; }
     .delivery-selector { display: flex; flex-direction: column; gap: 10px; margin-bottom: 20px; cursor: pointer; }
-    .delivery-selector .option { border: 1px solid #ddd; padding: 15px; border-radius: 6px; display: flex; gap: 10px; align-items: center; cursor: pointer; transition: 0.2s; }
-    .delivery-selector .option:hover { background: #f0f8ff; border-color: #2563eb; }
-    .delivery-selector input[type="radio"]:checked + label { color: #2563eb; }
+    .delivery-selector .option { border: 1px solid var(--border-color); padding: 15px; border-radius: 6px; display: flex; gap: 10px; align-items: center; cursor: pointer; transition: 0.2s; }
+    .delivery-selector .option:hover { background: var(--bg-hover-light); border-color: var(--primary-color); }
+    .delivery-selector input[type="radio"]:checked + label { color: var(--primary-color); }
     
-    .form-control { width: 100%; padding: 10px; margin-bottom: 15px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; }
+    .form-control { width: 100%; padding: 10px; margin-bottom: 15px; border: 1px solid var(--border-color); border-radius: 4px; box-sizing: border-box; }
     .btn-pay { width: 100%; background: #e63946; color: white; padding: 15px; border: none; font-size: 1.2em; font-weight: bold; cursor: pointer; border-radius: 6px; margin-top: 20px; transition: 0.3s; } 
     .btn-pay:hover { background: #d62839; }
     .muted { color: #888; font-size: 0.9em; margin-left: auto; }

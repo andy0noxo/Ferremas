@@ -124,9 +124,9 @@
 
 <style>
     .form-container { max-width: 800px; margin: 2rem auto; }
-    .form-container h2 { color: #1e293b; margin-bottom: 1.5rem; }
+    .form-container h2 { color: var(--text-heading); margin-bottom: 1.5rem; }
     
-    .card { background: white; padding: 2rem; border-radius: 8px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); }
+    .card { background: var(--bg-card); padding: 2rem; border-radius: 8px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); border: 1px solid var(--border-color); }
     .mt-4 { margin-top: 1.5rem; }
     
     .styled-form { display: flex; flex-direction: column; gap: 1.25rem; }
@@ -134,22 +134,22 @@
     .form-group { display: flex; flex-direction: column; gap: 0.5rem; flex: 1; }
     .form-group.half { min-width: 250px; }
     
-    .form-group label { font-weight: 600; color: #475569; font-size: 0.95rem; }
-    .form-control { padding: 0.75rem; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 1rem; font-family: inherit; transition: border-color 0.2s; }
-    .form-control:focus { outline: none; border-color: #3b82f6; box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1); }
+    .form-group label { font-weight: 600; color: var(--text-secondary); font-size: 0.95rem; }
+    .form-control { padding: 0.75rem; border: 1px solid var(--border-color); border-radius: 6px; font-size: 1rem; font-family: inherit; transition: border-color 0.2s; background-color: var(--input-bg); color: var(--text-primary); }
+    .form-control:focus { outline: none; border-color: var(--primary-color); box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1); }
     
     .form-actions { display: flex; gap: 1rem; margin-top: 1rem; }
-    .btn-primary { background: #2563eb; color: white; padding: 0.75rem 1.5rem; border: none; border-radius: 6px; font-weight: 600; cursor: pointer; transition: background 0.2s; }
-    .btn-primary:hover { background: #1d4ed8; }
+    .btn-primary { background: var(--primary-color); color: white; padding: 0.75rem 1.5rem; border: none; border-radius: 6px; font-weight: 600; cursor: pointer; transition: background 0.2s; }
+    .btn-primary:hover { background: var(--primary-hover); }
     
-    .btn-secondary { background: #f1f5f9; color: #475569; padding: 0.75rem 1.5rem; border: 1px solid #cbd5e1; border-radius: 6px; font-weight: 600; cursor: pointer; transition: all 0.2s; text-align: center; }
-    .btn-secondary:hover { background: #e2e8f0; color: #1e293b; }
+    .btn-secondary { background: var(--bg-menu-header); color: var(--text-secondary); padding: 0.75rem 1.5rem; border: 1px solid var(--border-color); border-radius: 6px; font-weight: 600; cursor: pointer; transition: all 0.2s; text-align: center; }
+    .btn-secondary:hover { background: var(--bg-hover-light); color: var(--text-primary); }
     
-    .danger-zone { border: 1px solid #fecaca; background-color: #fef2f2; }
-    .danger-zone h3 { color: #dc2626; margin-top: 0; margin-bottom: 0.5rem; }
-    .danger-zone p { color: #991b1b; margin-top: 0; margin-bottom: 1rem; }
-    .btn-danger { background: #dc2626; color: white; padding: 0.75rem 1.5rem; border: none; border-radius: 6px; font-weight: 600; cursor: pointer; transition: background 0.2s; }
-    .btn-danger:hover { background: #b91c1c; }
+    .danger-zone { border: 1px solid var(--error-border); background-color: var(--error-bg); }
+    .danger-zone h3 { color: var(--error-text); margin-top: 0; margin-bottom: 0.5rem; }
+    .danger-zone p { color: var(--error-text); margin-top: 0; margin-bottom: 1rem; }
+    .btn-danger { background: var(--error-bg); color: var(--error-text); padding: 0.75rem 1.5rem; border: 1px solid var(--error-text); border-radius: 6px; font-weight: 600; cursor: pointer; transition: background 0.2s; }
+    .btn-danger:hover { background: var(--error-border); }
 </style>
 <script>
     function toggleNewField(field) {

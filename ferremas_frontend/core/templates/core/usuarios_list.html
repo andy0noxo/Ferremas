@@ -43,6 +43,10 @@
     margin-bottom: 20px;
 }
 
+.usuarios-header h2 {
+    color: var(--text-primary);
+}
+
 .btn {
     display: inline-block;
     padding: 8px 16px;
@@ -50,18 +54,25 @@
     text-decoration: none;
     color: white;
     font-weight: bold;
+    border: none;
+    cursor: pointer;
 }
 
 .btn-primary {
-    background-color: #2563eb;
+    background-color: var(--primary-color);
+}
+.btn-primary:hover {
+    background-color: var(--primary-hover);
 }
 
 .btn-warning {
-    background-color: #f59e0b;
+    background-color: var(--warning-color);
+    color: #fff;
 }
 
 .btn-info {
-    background-color: #3b82f6;
+    background-color: var(--info-color);
+    color: #fff;
 }
 
 .btn-sm {
@@ -78,20 +89,24 @@ table {
     width: 100%;
     border-collapse: collapse;
     margin-top: 10px;
+    background-color: var(--bg-card);
+    color: var(--text-primary);
 }
 
 th, td {
     padding: 12px;
     text-align: left;
-    border: 1px solid #ddd;
+    border: 1px solid var(--border-color);
 }
 
 th {
-    background-color: #f3f4f6;
+    background-color: var(--bg-table-header);
+    color: var(--text-heading);
+    font-weight: 600;
 }
 
 tr:hover {
-    background-color: #f9fafb;
+    background-color: var(--bg-hover-light);
 }
 </style>
 {% endblock %}
