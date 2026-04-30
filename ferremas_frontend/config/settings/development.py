@@ -102,8 +102,8 @@ LOGGING = {
 # Django frontend communicates exclusively with Node.js backend
 # Architecture: Django (Frontend) → Node.js (Backend) → MySQL (Database)
 
-BACKEND_URL = 'http://localhost:3000'
-BACKEND_API_TIMEOUT = 30  # Longer timeout for development
+BACKEND_URL = os.getenv('BACKEND_URL', 'http://localhost:3000')
+BACKEND_API_TIMEOUT = int(os.getenv('BACKEND_API_TIMEOUT', '30'))  # Longer timeout for development
 
 # ============================================================================
 # DEVELOPMENT TOOLS

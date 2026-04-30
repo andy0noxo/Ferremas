@@ -117,11 +117,33 @@ app.use(errorHandler);
 
 const iniciarServidor = async () => {
   try {
-    // Sincronizar modelos con la base de datos
-    await db.sequelize.sync({
-      force: process.env.DB_FORCE_SYNC === 'true', // ¡Peligroso en producción!
-      alter: process.env.DB_ALTER_SYNC === 'true'
-    });
+    // Reintentos para evitar fallos por arranque lento de MySQL en Docker.
+    const maxRetries = Number(process.env.DB_CONNECT_RETRIES || 12);
+    const retryDelayMs = Number(process.env.DB_CONNECT_RETRY_DELAY_MS || 5000);
+
+    let lastError;
+    for (let attempt = 1; attempt <= maxRetries; attempt += 1) {
+      try {
+        // Sincronizar modelos con la base de datos
+        await db.sequelize.sync({
+          force: process.env.DB_FORCE_SYNC === 'true', // ¡Peligroso en producción!
+          alter: process.env.DB_ALTER_SYNC === 'true'
+        });
+        lastError = null;
+        break;
+      } catch (dbError) {
+        lastError = dbError;
+        logger.warn(`Intento ${attempt}/${maxRetries} de conexión a BD falló: ${dbError.message}`);
+
+        if (attempt < maxRetries) {
+          await new Promise((resolve) => setTimeout(resolve, retryDelayMs));
+        }
+      }
+    }
+
+    if (lastError) {
+      throw lastError;
+    }
     
     // Iniciar servidor HTTP
     app.listen(serverConfig.port, () => {
@@ -140,7 +162,8 @@ const iniciarServidor = async () => {
     });
 
   } catch (error) {
-    logger.error('Error al iniciar servidor:', error);
+    const errorDetail = error?.stack || error?.message || String(error);
+    logger.error(`Error al iniciar servidor: ${errorDetail}`);
     process.exit(1);
   }
 };

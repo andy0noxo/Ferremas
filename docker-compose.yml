@@ -1,0 +1,98 @@
+services:
+  db:
+    image: mysql:8.0
+    container_name: ferremas_db
+    command:
+      - --default-authentication-plugin=mysql_native_password
+      - --character-set-server=utf8mb4
+      - --collation-server=utf8mb4_unicode_ci
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: ferremas
+      MYSQL_USER: ferremas
+      MYSQL_PASSWORD: ferremas123
+      TZ: America/Santiago
+    ports:
+      - "3307:3306"
+    volumes:
+      - ferremas_mysql_data:/var/lib/mysql
+      - ./FerremasDDBB.sql:/docker-entrypoint-initdb.d/01-schema.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "mysqladmin ping -h localhost -uroot -proot --silent"]
+      interval: 15s
+      timeout: 10s
+      retries: 20
+      start_period: 120s
+
+  backend:
+    build:
+      context: ./Backend_Ferremas
+      dockerfile: Dockerfile
+    container_name: ferremas_backend
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      DB_HOST: db
+      DB_PORT: 3306
+      DB_USER: ferremas
+      DB_PASSWORD: ferremas123
+      DB_NAME: ferremas
+      DB_DIALECT: mysql
+      DB_FORCE_SYNC: "false"
+      DB_ALTER_SYNC: "false"
+      DB_LOGGING: "false"
+      DB_CONNECT_RETRIES: "12"
+      DB_CONNECT_RETRY_DELAY_MS: "5000"
+      # Database Configuration
+      PORT: 3000
+      NODE_ENV: development
+      # JWT Authentication (CRITICAL - must be set)
+      JWT_SECRET: "tu_super_secreto_complejo_aqui_123_desarrollo_local!"
+      JWT_EXPIRATION: "8h"
+      # CORS Configuration
+      CORS_ORIGIN: "http://localhost:8000,http://127.0.0.1:8000,http://frontend:8000"
+      MORGAN_FORMAT: combined
+      # Payment Configuration (Transbank/Webpay)
+      TRANSBANK_API_KEY: "579B532A7440BB0C9079DED94D31EA1615BACEB56610332264630D42D0A36B1C"
+      TRANSBANK_COMMERCE_CODE: "597055555532"
+      TRANSBANK_ENVIRONMENT: INTEGRATION
+      TRANSBANK_RETURN_URL: "http://localhost:8000/confirmacion-pago"
+      MOCK_PAYMENT: "true"
+      # Frontend URLs
+      FRONTEND_URL: "http://localhost:8000"
+      FRONTEND_CONFIRM_URL: "http://localhost:8000/confirmacion-pago"
+      # External APIs
+      DOLLAR_API_URL: "https://mindicador.cl/api/dolar"
+      DOLLAR_UPDATE_INTERVAL: "3600000"
+      # Logging
+      LOG_LEVEL: debug
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./Backend_Ferremas/uploads:/app/uploads
+      - ./Backend_Ferremas/_informes:/app/_informes
+
+  frontend:
+    build:
+      context: ./ferremas_frontend
+      dockerfile: Dockerfile
+    container_name: ferremas_frontend
+    depends_on:
+      - backend
+    environment:
+      DJANGO_ENVIRONMENT: development
+      DJANGO_DEBUG: "True"
+      ALLOWED_HOSTS: localhost,127.0.0.1,0.0.0.0
+      BACKEND_URL: http://backend:3000
+      BACKEND_API_TIMEOUT: "30"
+      LOG_LEVEL: DEBUG
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./ferremas_frontend/media:/app/media
+      - ./ferremas_frontend/logs:/app/logs
+      - ./ferremas_frontend/staticfiles:/app/staticfiles
+
+volumes:
+  ferremas_mysql_data:
