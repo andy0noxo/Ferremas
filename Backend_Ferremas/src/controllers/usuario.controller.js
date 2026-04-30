@@ -105,7 +105,7 @@ exports.deleteUser = async (req, res, next) => {
     const user = await db.Usuario.findByPk(id);
     if (!user) return res.status(404).json({ message: 'Usuario no encontrado' });
     await user.destroy();
-    res.json({ message: 'Usuario eliminado exitosamente' });
+    res.status(204).send();
   } catch (error) {
     next(error);
   }

@@ -18,16 +18,21 @@ const isValidRUT = (rut) => {
   const [numbers, dv] = cleanRut.split('-');
   let sum = 0;
   let multiplier = 2;
-  
-  // Calcular dígito verificador
+
+  // Calcular dígito verificador usando la serie 2..7 repetida (derecha a izquierda)
   for (let i = numbers.length - 1; i >= 0; i--) {
-    sum += parseInt(numbers[i]) * multiplier;
+    sum += parseInt(numbers[i], 10) * multiplier;
     multiplier = multiplier === 7 ? 2 : multiplier + 1;
   }
-  
-  const remainder = sum % 11;
-  const calculatedDV = remainder < 2 ? remainder.toString() : (11 - remainder === 10 ? 'k' : (11 - remainder).toString());
-  
+
+  const mod = sum % 11;
+  const dvValue = 11 - mod;
+  let calculatedDV;
+
+  if (dvValue === 11) calculatedDV = '0';
+  else if (dvValue === 10) calculatedDV = 'k';
+  else calculatedDV = dvValue.toString();
+
   return dv.toLowerCase() === calculatedDV;
 };
 

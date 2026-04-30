@@ -230,7 +230,7 @@ exports.delete = async (req, res, next) => {
     await db.Stock.destroy({ where: { producto_id: producto.id }, transaction });
     await producto.destroy({ transaction });
     await transaction.commit();
-    res.json({ message: 'Producto eliminado exitosamente' });
+    res.status(204).send();
   } catch (error) {
     if (!transaction.finished) {
       await transaction.rollback();

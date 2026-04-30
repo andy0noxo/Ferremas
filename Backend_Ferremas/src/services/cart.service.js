@@ -46,7 +46,8 @@ class CartService {
 
       return items.reduce((total, item) => {
         const producto = productos.find(p => p.id === item.producto_id);
-        return total + (producto.precio * item.cantidad);
+        const precio = producto ? producto.precio : 0;
+        return total + (precio * item.cantidad);
       }, 0);
     } catch (error) {
       logger.error('Error calculando total del carrito:', error);

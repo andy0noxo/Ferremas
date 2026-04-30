@@ -293,3 +293,14 @@ process-*.pid
 Backend_Ferremas/kill-processes.bat
 Backend_Ferremas/run-tests.bat
 Backend_Ferremas/run-tests.ps1
+
+# =============== ASEGURAR VERSIONADO DE PRUEBAS ===============
+# Mantener siempre versionados los tests y assets de automatización del proyecto.
+!Backend_Ferremas/src/**/*.test.js
+!Backend_Ferremas/src/**/*.behavior.test.js
+!Backend_Ferremas/src/**/*.smoke.test.js
+!Backend_Ferremas/features/**/*.feature
+!Backend_Ferremas/features/step_definitions/**
+!Backend_Ferremas/features/support/**
+!Backend_Ferremas/TESTS_CONTROLLERS_SUMMARY.md
+!Backend_Ferremas/JEST_BEST_PRACTICES.md

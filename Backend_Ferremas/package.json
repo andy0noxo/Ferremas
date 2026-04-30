@@ -6,6 +6,9 @@
   "scripts": {
     "dev": "nodemon src/server.js",
     "start": "node src/server.js",
+    "test": "jest --runInBand",
+    "test:watch": "jest --watch",
+    "test:coverage": "jest --coverage",
     "lint": "eslint . --ext .js",
     "lint:fix": "eslint . --ext .js --fix",
     "db:migrate": "sequelize-cli db:migrate",
@@ -53,6 +56,8 @@
     "eslint": "^8.56.0",
     "eslint-config-airbnb-base": "^15.0.0",
     "eslint-plugin-import": "^2.29.1",
+    "jest": "^30.3.0",
+    "jest-mock-extended": "^4.0.1",
     "nodemon": "^3.0.2",
     "selenium-webdriver": "^4.11.3",
     "sequelize-cli": "^6.6.1",
