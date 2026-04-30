@@ -109,13 +109,21 @@ cucumber-report.json
 cucumber-report.html
 
 # Scripts de análisis temporales
-Backend_Ferremas/analyze_excel.js
-Backend_Ferremas/analyze_multiple_features.js
+Backend_Ferremas/analyze_*.js
 Backend_Ferremas/check_excel_sheets.js
-Backend_Ferremas/test_count.js
-Backend_Ferremas/test_duplicados.js
-Backend_Ferremas/test_f01.js
-Backend_Ferremas/test_screenshots.js
+Backend_Ferremas/fix_stock.js
+Backend_Ferremas/test_*.js
+Backend_Ferremas/scripts/comparar-excel.js
+Backend_Ferremas/scripts/generar-ids-secuenciales.js
+Backend_Ferremas/scripts/leer-informe-excel.js
+Backend_Ferremas/scripts/regenerar-excel.js
+Backend_Ferremas/scripts/ver-output-completo.js
+Backend_Ferremas/scripts/verificar-caso-con-errores.js
+Backend_Ferremas/scripts/verificar-conteo.js
+Backend_Ferremas/scripts/verificar-evidencias.js
+Backend_Ferremas/scripts/verificar-output-detallado.js
+Backend_Ferremas/scripts/verificar-output.js
+Backend_Ferremas/scripts/verificar-pasos.js
 
 # =============== BASES DE DATOS ===============
 # Archivos de base de datos
