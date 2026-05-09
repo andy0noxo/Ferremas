@@ -23,12 +23,12 @@ Este documento recopila lo trabajado en el repositorio Ferremas: propósito, car
 - Chrome + chromedriver (para pruebas Selenium) — la suite incluye scripts para instalar chromedriver
 
 **Resumen de archivos README útiles**
+- [README.md](README.md) — guía principal del proyecto, descarga, ejecución y pruebas.
 - [Backend_Ferremas/README.md](Backend_Ferremas/README.md) — API, endpoints, instalación y scripts.
 - [Backend_Ferremas/DEVELOPMENT_README.md](Backend_Ferremas/DEVELOPMENT_README.md) — guía de desarrollo, Dockerfile y VS Code.
 - [Backend_Ferremas/ENV_README.md](Backend_Ferremas/ENV_README.md) — variables `.env` necesarias.
 - [Backend_Ferremas/PRUEBAS_README.md](Backend_Ferremas/PRUEBAS_README.md) — detalle de features Cucumber y casos.
-- [Backend_Ferremas/INFORMES_README.md](Backend_Ferremas/INFORMES_README.md) — generación de informes y estructura de `_informes`.
-- [Backend_Ferremas/TESTS_CONTROLLERS_SUMMARY.md](Backend_Ferremas/TESTS_CONTROLLERS_SUMMARY.md) — resumen de cobertura y mapeo de tests.
+- [Backend_Ferremas/JEST_BEST_PRACTICES.md](Backend_Ferremas/JEST_BEST_PRACTICES.md) — guía de Jest y cobertura.
 
 **Cómo obtener el repositorio**
 ```bash
@@ -39,7 +39,7 @@ cd Ferremas
 **Levantar la aplicación con Docker (recomendado)**
 1. En la raíz del repo hay un `docker-compose.yml` que levanta la base de datos, backend y frontend. Para levantar la aplicación:
 ```powershell
-cd "D:\DUOC\semestre 6\Automatización de Pruebas\3\EA3\Entregable\Ferremas"
+cd "<ruta-donde-guardes-el-proyecto>"
 docker compose up -d
 ```
 2. Verificar estado:
@@ -129,8 +129,8 @@ Todos los detalles y valores recomendados están en `Backend_Ferremas/ENV_README
 - Ejecutar scanner Sonar: ver sección SonarQube (usar token generado)
 
 **Resumen de resultados actuales (último run)**
-- Cobertura global (Jest): 90.51% statements (ver Backend_Ferremas/TESTS_CONTROLLERS_SUMMARY.md).
-- Tests: 421 passed (30 suites) — ver `Backend_Ferremas/TESTS_CONTROLLERS_SUMMARY.md`.
+- Cobertura global (Jest): ver `Backend_Ferremas/coverage/lcov-report/index.html` o ejecutar `npm run test:coverage`.
+- Tests: ver el resumen de `npm test` y los reportes generados en `Backend_Ferremas/coverage/`.
 - SonarQube: análisis enviado y dashboard actualizado (ejecución local completada).
 
 **Siguientes pasos recomendados**

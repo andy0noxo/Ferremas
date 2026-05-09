@@ -766,7 +766,7 @@ where chromedriver   # Windows
 
 # Solución 3: Variable de entorno
 export CHROME_BIN=/path/to/chrome  # Linux/Mac
-set CHROME_BIN=C:\Path\To\Chrome   # Windows
+set CHROME_BIN=<ruta-a-chrome>   # Windows
 ```
 
 ### **Error: "Connection refused to localhost:8000"**

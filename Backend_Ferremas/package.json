@@ -21,6 +21,7 @@
     "docker:build": "docker build -t ferremas-backend .",
     "docker:run": "docker run -p 3000:3000 --env-file .env ferremas-backend",
     "docker:compose": "docker-compose up --build",
+    "zap:scan": "node scripts/run-zap-scan.js",
     "validate-env": "node scripts/validate-env.js",
     "setup": "npm run validate-env && npm run db:migrate && npm run db:seed",
     "features": "cucumber-js --require ./features/support --require ./features/step_definitions ./features",

@@ -90,6 +90,16 @@ app.get('/api/status', (req, res) => {
   });
 });
 
+// Ruta raíz para checks de disponibilidad y escaneo automatizado
+app.get('/', (req, res) => {
+  res.json({
+    name: 'Ferremas Backend API',
+    status: 'OK',
+    health: '/api/status',
+    documentation: '/Backend_Ferremas/README.md'
+  });
+});
+
 // Ruta para manejar solicitudes a /.well-known/appspecific/com.chrome.devtools.json
 app.get('/.well-known/appspecific/com.chrome.devtools.json', (req, res) => {
     res.status(204).send(); // Respuesta sin contenido

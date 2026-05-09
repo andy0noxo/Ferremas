@@ -1,0 +1,28 @@
+services:
+  backend:
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "node -e \"fetch('http://127.0.0.1:3000/api/status').then((response) => process.exit(response.ok ? 0 : 1)).catch(() => process.exit(1))\""
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 20
+      start_period: 45s
+
+  zap-baseline:
+    image: ghcr.io/zaproxy/zaproxy:stable
+    container_name: ferremas_zap_baseline
+    depends_on:
+      backend:
+        condition: service_healthy
+    command:
+      [
+        "sh",
+        "-c",
+        "mkdir -p /zap/wrk/reports && /zap/zap-baseline.py -c /zap/wrk/zap-baseline.conf -t \"${ZAP_TARGET_URL:-http://backend:3000/}\" -r reports/zap-baseline-report.html -J reports/zap-baseline-report.json -w reports/zap-baseline-warnings.md"
+      ]
+    volumes:
+      - ./Backend_Ferremas/_informes/zap:/zap/wrk
+      - ./Backend_Ferremas/scripts/zap-baseline.conf:/zap/wrk/zap-baseline.conf:ro

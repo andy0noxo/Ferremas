@@ -174,6 +174,25 @@ npm run features:report
 - ✅ **Reportes en Excel, HTML y Markdown**
 - ✅ **Captura de terminal** y logs detallados
 
+### 🛡️ Análisis de vulnerabilidades OWASP ZAP
+Este backend también incluye un flujo automatizado de análisis de seguridad con **OWASP ZAP** en Docker.
+
+```bash
+# Ejecutar el baseline scan de seguridad
+npm run zap:scan
+```
+
+El escaneo levanta `db` y `backend` con Docker Compose, espera a que `/api/status` responda y luego ejecuta ZAP contra `http://backend:3000`.
+
+Política usada para la entrega:
+- `10037` se considera falla real porque expone el encabezado `X-Powered-By`.
+- `10049` se ignora porque en este proyecto sale por rutas 404 no relevantes para la evaluación.
+
+Los reportes se guardan en:
+- `Backend_Ferremas/_informes/zap/zap-baseline-report.html`
+- `Backend_Ferremas/_informes/zap/zap-baseline-report.json`
+- `Backend_Ferremas/_informes/zap/zap-baseline-warnings.md`
+
 **Funcionalidades cubiertas:**
 - **CP01a-CP04** - Registro de usuarios
 - **CP05a-CP07** - Autenticación y login
@@ -396,7 +415,6 @@ console.debug('🔵 DEBUG:', message);   // Información de debugging
 ## 📞 Soporte y Documentación
 
 Para más información específica:
-- **📊 [Sistema de Informes](INFORMES_README.md)** - Reportes automáticos detallados
 - **🧪 [Pruebas Automatizadas](PRUEBAS_README.md)** - Testing BDD completo con Cucumber
 - **📖 [README Principal](../README.md)** - Visión general del proyecto completo
 
