@@ -185,6 +185,7 @@ Yo ya comprobé que las pruebas automáticas del backend con **Jest** sí se eje
     - Node.js 18 o superior
     - Python 3.8 o superior
     - MySQL Server
+    - MySQL Workbench
     - Chrome, si vas a ejecutar pruebas con Selenium
 
 2. Descarga el proyecto en la carpeta que tú prefieras:
@@ -195,18 +196,18 @@ git clone https://github.com/USUARIO/REPOSITORIO.git Ferremas
 cd Ferremas
 ```
 
-3. Crea las bases de datos locales en MySQL:
-    - `ferremas`
-    - `ferremas_test`
+3. Abre **MySQL Workbench** y conéctate a tu servidor MySQL local.
 
-Si prefieres usar consola, puedes escribir:
+4. Ejecuta el script de base de datos del proyecto:
+    - Abre el archivo `FerremasDDBB.sql` desde la carpeta raíz del proyecto.
+    - Revisa que el script apunte a tu instancia local de MySQL.
+    - Ejecuta el script completo desde Workbench para crear la base de datos `ferremas`, sus tablas y los datos iniciales.
 
-```sql
-CREATE DATABASE ferremas;
-CREATE DATABASE ferremas_test;
-```
+5. Si vas a correr pruebas, crea también la base de datos `ferremas_test` desde Workbench.
+    - Puedes hacerlo con una consulta SQL nueva dentro de Workbench.
+    - Si prefieres, usa el asistente visual de Workbench para crear una base de datos llamada `ferremas_test`.
 
-4. Configura el backend:
+6. Configura el backend:
     - Entra a la carpeta `Backend_Ferremas`.
     - Copia `.env.example` y guárdalo como `.env`.
     - Asegúrate de que estos valores apunten a tu MySQL local:
@@ -217,21 +218,21 @@ CREATE DATABASE ferremas_test;
       - `DB_NAME=ferremas`
       - `NODE_ENV=development`
 
-5. Instala las dependencias del backend:
+7. Instala las dependencias del backend:
 
 ```bash
 cd Backend_Ferremas
 npm install
 ```
 
-6. Ejecuta el backend manualmente:
+8. Ejecuta el backend manualmente:
 
 ```bash
 cd Backend_Ferremas
 npm start
 ```
 
-7. Ejecuta el frontend manualmente:
+9. Ejecuta el frontend manualmente:
 
 ```bash
 cd ferremas_frontend
@@ -241,12 +242,13 @@ pip install -r requirements.txt
 python manage.py runserver 0.0.0.0:8000
 ```
 
-8. Abre el navegador en `http://localhost:8000` para usar el frontend y en `http://localhost:3000/api/status` para comprobar el backend.
+10. Abre el navegador en `http://localhost:8000` para usar el frontend y en `http://localhost:3000/api/status` para comprobar el backend.
 
-9. Si algo falla:
+11. Si algo falla:
     - Revisa que MySQL esté encendido.
+    - Revisa que estés ejecutando `FerremasDDBB.sql` en MySQL Workbench sobre tu servidor local.
     - Revisa que el archivo `.env` tenga las credenciales correctas.
-    - Revisa que existan las bases de datos `ferremas` y `ferremas_test`.
+    - Revisa que exista la base de datos `ferremas` y, si vas a probar, también `ferremas_test`.
     - Si Windows no reconoce `python`, prueba con `py`.
 
 ### 5. Correr solo el backend si lo necesitas
