@@ -204,6 +204,7 @@ Temporary Items
 # =============== IDEs y EDITORES ===============
 # Visual Studio Code
 .vscode/
+!.vscode/
 !.vscode/settings.json
 !.vscode/tasks.json
 !.vscode/launch.json
@@ -234,6 +235,11 @@ reports/
 test-results.xml
 cucumber-report.json
 cucumber-report.html
+
+# JMeter generated artifacts
+Backend_Ferremas/jmeter/reports/*
+!Backend_Ferremas/jmeter/reports/.gitkeep
+Backend_Ferremas/JMETER_GUI_SUMMARY.txt
 
 # Test artifacts
 screenshots/
