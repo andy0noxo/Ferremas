@@ -1,0 +1,21 @@
+id,nombre,categoria,precio,stock,sku
+1,Martillo de Goma,Herramientas,15000,50,MART001
+2,Destornillador Set,Herramientas,25000,30,DEST001
+3,Taladro Eléctrico,Máquinas,85000,10,TAL001
+4,Sierra Circular,Máquinas,120000,8,SIE001
+5,Tenazas,Herramientas,12000,100,TEN001
+6,Tuercas Acero,Tornillería,5000,500,TU001
+7,Tornillos (100),Tornillería,8000,200,TO001
+8,Escalera Aluminio 3m,Escaleras,65000,15,ESC001
+9,Masilla Rápida,Adhesivos,3500,150,MAS001
+10,Pintura Acrílica 1L,Pinturas,18000,80,PIN001
+11,Brocha Plana 4,Pinceles,6000,120,BRO001
+12,Lija Grano 120,Abrasivos,2000,300,LIJ001
+13,Guantes de Trabajo,EPP,7000,250,GUA001
+14,Casco de Seguridad,EPP,12000,100,CAS001
+15,Lentes de Seguridad,EPP,4500,200,LEN001
+16,Nivel Láser,Medición,45000,20,NIV001
+17,Cinta Métrica 5m,Medición,8000,100,CIN001
+18,Flexómetro 10m,Medición,12000,80,FLE001
+19,Linterna LED,Iluminación,15000,60,LIN001
+20,Batería AA (4 unidades),Energía,6000,200,BAT001

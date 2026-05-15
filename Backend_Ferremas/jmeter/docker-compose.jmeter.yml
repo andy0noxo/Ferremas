@@ -1,0 +1,162 @@
+version: '3.8'
+
+services:
+  # JMeter service for load testing
+  jmeter:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: ferremas-jmeter
+    environment:
+      # Test scenario to run
+      SCENARIO: ${SCENARIO:-scenario_smoke}
+      
+      # Backend connectivity
+      BACKEND_HOST: backend
+      BACKEND_PORT: 3000
+      
+      # Result files
+      RESULT_FILE: results_${SCENARIO:-scenario_smoke}_${TIMESTAMP}.jtl
+      REPORT_DIR: html-report-${SCENARIO:-scenario_smoke}-${TIMESTAMP}
+      
+      # JMeter settings
+      HEAP: "-Xmx2g -Xms1g"
+      
+    volumes:
+      # Mount test plans (read-only)
+      - ./testplans:/home/jmeter/testplans:ro
+      
+      # Mount test data (read-only)
+      - ./data:/home/jmeter/data:ro
+      
+      # Mount configuration (read-only)
+      - ./config:/home/jmeter/config:ro
+      
+      # Mount reports directory (writable - for results)
+      - ./reports:/home/jmeter/reports
+      
+    # Network configuration
+    networks:
+      - ferremas-network
+    
+    # Dependencies
+    depends_on:
+      backend:
+        condition: service_healthy
+      db:
+        condition: service_healthy
+    
+    # Resource limits
+    deploy:
+      resources:
+        limits:
+          cpus: '2'
+          memory: 4G
+        reservations:
+          cpus: '1'
+          memory: 2G
+    
+    # Restart policy
+    restart: "no"
+    
+    # Timeout for test completion (30 minutes max)
+    stop_grace_period: 5m
+
+# ==========================================
+# Reference: Backend and Database services
+# These should already be running from docker-compose.yml
+# but included here for reference/coordination
+# ==========================================
+
+  backend:
+    # This service should come from docker-compose.yml
+    # We reference it here for dependency management
+    image: ferremas-backend:latest
+    container_name: ferremas-backend
+    environment:
+      NODE_ENV: development
+      DB_HOST: db
+      DB_PORT: 3306
+      DB_USER: ferremas
+      DB_PASSWORD: ferremas123
+      DB_NAME: ferremas
+    ports:
+      - "3000:3000"
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - ferremas-network
+    healthcheck:
+      test: ["CMD", "node", "-e", "require('http').get('http://localhost:3000/health', (r) => {if (r.statusCode !== 200) throw new Error(r.statusCode)})"]
+      interval: 10s
+      timeout: 5s
+      retries: 20
+      start_period: 60s
+
+  db:
+    # This service should come from docker-compose.yml
+    image: mysql:8.0
+    container_name: ferremas-db
+    environment:
+      MYSQL_ROOT_PASSWORD: root123
+      MYSQL_USER: ferremas
+      MYSQL_PASSWORD: ferremas123
+      MYSQL_DATABASE: ferremas
+    ports:
+      - "3307:3306"
+    volumes:
+      - ferremas_mysql_data:/var/lib/mysql
+      - ../../FerremasDDBB.sql:/docker-entrypoint-initdb.d/init.sql
+    networks:
+      - ferremas-network
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "127.0.0.1", "-u", "ferremas", "-pferremas123"]
+      interval: 10s
+      timeout: 5s
+      retries: 20
+      start_period: 120s
+
+# ==========================================
+# Networks
+# ==========================================
+
+networks:
+  ferremas-network:
+    driver: bridge
+    name: ferremas-network
+
+# ==========================================
+# Volumes
+# ==========================================
+
+volumes:
+  ferremas_mysql_data:
+    driver: local
+    name: ferremas_mysql_data
+
+# ==========================================
+# Documentation
+# ==========================================
+# 
+# Usage:
+#   Start JMeter smoke test:
+#     docker-compose -f docker-compose.jmeter.yml up \
+#       -e SCENARIO=scenario_smoke
+#
+#   Start JMeter load test:
+#     docker-compose -f docker-compose.jmeter.yml up \
+#       -e SCENARIO=scenario_carga
+#
+#   View logs:
+#     docker-compose -f docker-compose.jmeter.yml logs -f jmeter
+#
+#   Stop and cleanup:
+#     docker-compose -f docker-compose.jmeter.yml down
+#
+# Important Notes:
+#   - Expects main services (backend, db) to already exist
+#   - Reports are saved to ./reports/ on host
+#   - Test results (.jtl) are saved to ./reports/
+#   - JMeter logs are saved to ./reports/jmeter-{scenario}.log
+#

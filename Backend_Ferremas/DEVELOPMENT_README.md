@@ -313,6 +313,143 @@ module.exports = {
 };
 ```
 
+## 🧪 Pruebas de Carga y Estrés con JMeter
+
+### Instalación
+
+#### Local (Linux/Mac)
+```bash
+# Primera vez
+npm run jmeter:install
+
+# Luego, recargar el shell
+source ~/.bash_profile  # o ~/.bashrc o ~/.zshrc según tu shell
+```
+
+#### Windows
+1. Descargar JMeter desde https://jmeter.apache.org/download_jmeter.cgi
+2. Extraer a una ubicación conocida
+3. Agregar `{ruta-jmeter}/bin` al PATH
+4. Verificar: `jmeter -v`
+
+### Configuración de Datos de Prueba
+
+Antes de ejecutar tests, generar datos limpios:
+```bash
+npm run jmeter:setup-data
+```
+
+Esto:
+- Limpia tablas de BD (usuarios, productos)
+- Crea usuarios y productos de prueba reproducibles
+- Exporta datos a CSVs en `jmeter/data/`
+
+### Ejecutar Tests Localmente
+
+**Smoke Test (validación rápida):**
+```bash
+npm run jmeter:local:smoke
+```
+- 10 usuarios, 1 minuto
+- Ideal para CI/CD
+
+**Load Test (carga normal):**
+```bash
+npm run jmeter:local:carga
+```
+- 100 usuarios, 5 minutos
+- Mide performance en pico normal
+
+**Stress Test (carga máxima):**
+```bash
+npm run jmeter:local:estres
+```
+- 500 usuarios, 6 minutos totales
+- Identifica puntos de quiebre
+
+**Resistance Test (resistencia):**
+```bash
+npm run jmeter:local:resistencia
+```
+- 50 usuarios durante 30 minutos
+- Detecta memory leaks
+
+### Ejecutar Tests en Docker
+
+Docker proporciona aislamiento y reproducibilidad:
+
+```bash
+# Smoke test en Docker
+npm run jmeter:docker:smoke
+
+# Load test en Docker
+npm run jmeter:docker:carga
+
+# Stress test en Docker
+npm run jmeter:docker:estres
+```
+
+### Interpretar Resultados
+
+Los reports se generan en `jmeter/reports/html-report-{timestamp}/`:
+
+**Abrir report:**
+```bash
+# Linux/Mac
+open jmeter/reports/html-report-*/index.html
+
+# Windows
+start jmeter\reports\html-report-*\index.html
+```
+
+**Métricas importantes:**
+
+| Métrica | Objetivo | Acción si falla |
+|---------|----------|-----------------|
+| Throughput > 100 req/s | Mínimo aceptable | Verificar BD, aumentar recursos |
+| p95 latency < 1000ms | Aceptable | Revisar queries lentas |
+| p99 latency < 2000ms | Aceptable | Revisar queries lentas |
+| Error % < 1% | Mínimo | Revisar logs del backend |
+| CPU < 80% | Normal | Aceptable durante test |
+| Memory < 85% | Normal | Revisar memory leaks |
+
+### Archivos de Configuración
+
+**Ubicación:** `jmeter/`
+
+- `testplans/` - Planes de prueba (.jmx)
+  - `scenario_smoke.jmx` - Validación rápida
+  - `scenario_carga.jmx` - Carga sostenida (100 users)
+  - `scenario_estres.jmx` - Stress máximo (500 users)
+  - `scenario_resistencia.jmx` - Resistencia 30 min (50 users)
+
+- `data/` - Datos de prueba
+  - `usuarios.csv` - Credenciales de prueba
+  - `productos.csv` - Productos de prueba
+
+- `config/environment.properties` - Configuración global
+  - HOST, PORT, timeouts
+  - Parámetros por escenario
+
+- `reports/` - Resultados
+  - HTML reports auto-generados
+  - .jtl result files
+
+### Limpieza
+
+Mantener reports bajo control:
+```bash
+npm run jmeter:cleanup
+```
+
+Esto elimina reports antiguos (mantiene últimos 5).
+
+### Documentación Detallada
+
+Para guía completa: `jmeter/README_JMETER.md`
+
+Para técnicas avanzadas: `jmeter/JMETER_GUIDE.md`
+
 ---
 
 **Esta configuración asegura un entorno de desarrollo robusto y productivo** ⚡

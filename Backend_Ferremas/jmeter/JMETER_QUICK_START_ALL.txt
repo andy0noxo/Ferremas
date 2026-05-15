@@ -1,0 +1,224 @@
+╔════════════════════════════════════════════════════════════════════════════╗
+║               🎨 JMETER GUI - VISUALIZAR TODAS LAS PRUEBAS                  ║
+║                          QUICK REFERENCE CARD                               ║
+╚════════════════════════════════════════════════════════════════════════════╝
+
+════════════════════════════════════════════════════════════════════════════
+
+🎯 RESPUESTA DIRECTA
+
+  ¿Cómo visualizar todas las pruebas en JMeter GUI?
+
+  ⚡ COMANDO ÚNICO:
+
+     npm run jmeter:gui:all
+
+  ✅ Abre 4 ventanas JMeter simultáneamente con todos los planes
+
+════════════════════════════════════════════════════════════════════════════
+
+📋 PREPARACIÓN (30 segundos)
+
+  Paso 1: Terminal 1 - Inicializar
+  ────────────────────────────────
+  cd Backend_Ferremas
+  npm run jmeter:setup-data
+  docker-compose up -d db backend
+
+  Paso 2: Terminal 2 - Abrir todos los planes
+  ───────────────────────────────────────────
+  npm run jmeter:gui:all
+
+  ✅ Se abrirán 4 ventanas JMeter automáticamente
+
+════════════════════════════════════════════════════════════════════════════
+
+🖥️  VENTANAS QUE SE ABRIRÁN
+
+  ┌─────────────────────────────┐  ┌─────────────────────────────┐
+  │  1️⃣ SMOKE TEST              │  │  2️⃣ LOAD TEST               │
+  │  ─────────────────────────  │  │  ─────────────────────────  │
+  │  • 10 usuarios              │  │  • 100 usuarios             │
+  │  • 30s ramp-up              │  │  • 120s ramp-up             │
+  │  • 60s hold                 │  │  • 300s hold                │
+  │  • 3 requests               │  │  • Auth + requests          │
+  │  • ~90 seg                  │  │  • ~420 seg                 │
+  └─────────────────────────────┘  └─────────────────────────────┘
+
+  ┌─────────────────────────────┐  ┌─────────────────────────────┐
+  │  3️⃣ STRESS TEST              │  │  4️⃣ RESISTANCE TEST         │
+  │  ─────────────────────────  │  │  ─────────────────────────  │
+  │  • 500 usuarios             │  │  • 50 usuarios              │
+  │  • 180s ramp-up             │  │  • 120s ramp-up             │
+  │  • 180s hold                │  │  • 1800s hold (30 min)      │
+  │  • Filtros complejos        │  │  • Loop infinito             │
+  │  • ~360 seg                 │  │  • Memory leak detection    │
+  └─────────────────────────────┘  └─────────────────────────────┘
+
+════════════════════════════════════════════════════════════════════════════
+
+🚀 EN CADA VENTANA - WORKFLOW
+
+  Paso 1: Agregar Listener
+  ────────────────────────
+  1. Click derecho en "Thread Group"
+  2. Selecciona: Add → Listener → View Results Tree
+     (Esto te permite ver requests en vivo)
+
+  Paso 2: Ejecutar Prueba
+  ──────────────────────
+  1. Click botón ▶️ Run
+     (O presiona Ctrl+R)
+
+  Paso 3: Ver Resultados
+  ─────────────────────
+  • En el listener verás cada request
+  • Verde (✅) = OK
+  • Rojo (❌) = Error
+  • Puedes ver la respuesta completa
+
+════════════════════════════════════════════════════════════════════════════
+
+📊 PANEL IZQUIERDO - QUÉ VAS A VER
+
+  📦 Test Plan
+  ├─ 🔧 Global Configuration
+  ├─ ⚙️ HTTP Request Defaults
+  └─ 👥 Thread Group
+     ├─ 📡 HTTP Request 1
+     │  └─ ✅ Assert Status 200
+     ├─ 📡 HTTP Request 2
+     │  └─ ✅ Assert Status 200
+     └─ 📡 HTTP Request 3
+        └─ ✅ Assert Status 200
+
+════════════════════════════════════════════════════════════════════════════
+
+⚡ REQUISITOS PREVIOS (VERIFICAR PRIMERO)
+
+  ✅ JMeter Instalado
+     jmeter -v
+
+  ✅ Backend Corriendo
+     docker-compose ps
+     (si no → docker-compose up -d db backend)
+
+  ✅ Datos Inicializados
+     npm run jmeter:setup-data
+
+════════════════════════════════════════════════════════════════════════════
+
+💡 TIPS
+
+  1. Ejecutar en Paralelo
+     │ Abre los 4 planes a la vez
+     │ Compara performance entre escenarios
+     │ Identifica bottlenecks
+
+  2. Editar Mientras se Ejecuta
+     │ Pausa con ⏹️ Stop
+     │ Cambia valores
+     │ Resume con ▶️ Run
+
+  3. Guardar Resultados
+     │ Click derecho en Listener
+     │ Save results as...
+     │ Exporta en CSV/JSON/XML
+
+  4. Agregar Validaciones
+     │ Click derecho en HTTP Request
+     │ Add → Assertion
+     │ Define qué validar
+
+════════════════════════════════════════════════════════════════════════════
+
+📋 TODOS LOS COMANDOS npm
+
+  # Abrir todos los 4 planes (RECOMENDADO)
+  npm run jmeter:gui:all
+
+  # Abrir planes individuales
+  npm run jmeter:gui:smoke       # Smoke Test
+  npm run jmeter:gui:carga       # Load Test
+  npm run jmeter:gui:estres      # Stress Test
+  npm run jmeter:gui:resistencia # Resistance Test
+  npm run jmeter:gui             # Default (smoke)
+
+  # Ejecución automática (sin GUI)
+  npm run jmeter:local:smoke     # Local
+  npm run jmeter:docker:smoke    # Docker
+
+════════════════════════════════════════════════════════════════════════════
+
+🎯 WORKFLOW COMPLETO (3 MINUTOS)
+
+  Terminal 1:
+  ──────────
+  npm run jmeter:setup-data          (30 seg)
+  docker-compose up -d db backend    (espera 5 seg)
+
+  Terminal 2:
+  ──────────
+  npm run jmeter:gui:all             (abre 4 ventanas)
+
+  En JMeter (cada ventana):
+  ────────────────────────
+  1. Click derecho Thread Group → Add → Listener → View Results Tree
+  2. Click ▶️ Run
+  3. Observar en tiempo real
+
+════════════════════════════════════════════════════════════════════════════
+
+✅ VERIFICACIÓN RÁPIDA
+
+  Antes de ejecutar:
+  ☐ Backend running: curl http://localhost:3000/api/health
+  ☐ JMeter installed: jmeter -v
+  ☐ Test data ready: ls Backend_Ferremas/jmeter/data/
+
+════════════════════════════════════════════════════════════════════════════
+
+🎉 LISTO PARA USAR
+
+  Ejecuta AHORA:
+
+     npm run jmeter:gui:all
+
+  Se abrirán 4 ventanas con todos los planes cargados.
+
+════════════════════════════════════════════════════════════════════════════
+
+📖 DOCUMENTACIÓN RELACIONADA
+
+  • JMETER_GUI_ALL_PLANS.md         (Guía completa)
+  • JMETER_GUI_QUICKSTART.md        (Guía rápida)
+  • JMETER_PLAN_STRUCTURES.md       (Estructura)
+  • JMETER_GUI_VISUALIZATION.md     (Visualización)
+  • TROUBLESHOOTING.md              (Problemas)
+
+════════════════════════════════════════════════════════════════════════════
+
+¿PREGUNTAS FRECUENTES?
+
+  P: ¿Se abren todos los 4 planes?
+  R: Sí, en 4 ventanas separadas
+
+  P: ¿Puedo ejecutarlos simultáneamente?
+  R: Sí, eso es lo que hace npm run jmeter:gui:all
+
+  P: ¿Puedo editar mientras se ejecuta?
+  R: Sí, pausa con ⏹️ Stop, edita, resume con ▶️ Run
+
+  P: ¿Se guardan los cambios?
+  R: Sí, Ctrl+S o File → Save
+
+  P: ¿Cómo veo resultados?
+  R: Agrega un Listener y verás en tiempo real
+
+════════════════════════════════════════════════════════════════════════════
+
+🚀 ¡COMIENZA AHORA! 🚀
+
+  npm run jmeter:gui:all
+
+════════════════════════════════════════════════════════════════════════════
